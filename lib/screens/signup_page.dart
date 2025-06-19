@@ -47,6 +47,13 @@ class _SignUpPageState extends State<SignUpPage> {
           color: AppColors.latteFoam.withOpacity(0.3),
         ),
       ),
+              const Positioned(
+                top: 40,
+                right: 16,
+                child: ThemeToggleButton(
+                  iconColor: AppColors.brown,
+                ),
+              ),
     SafeArea(
         child: SingleChildScrollView(
           child: Padding(

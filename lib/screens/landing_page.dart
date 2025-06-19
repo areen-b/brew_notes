@@ -13,81 +13,92 @@ class LandingPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.latteFoam,
-      body: Column(
+      body: Stack(
         children: [
-          // Top Curved Header
-          ClipPath(
-            clipper: TopCurveClipper(),
-            child: Container(
-              height: screenHeight * 0.55,
-              color: AppColors.primary,
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: EdgeInsets.only(bottom: screenHeight * 0.12),
-                child: Text(
-                  'Brew Notes',
-                  style: TextStyle(
-                    fontSize: screenWidth * 0.125,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Playfair Display',
-                    color: AppColors.latteFoam,
-                    letterSpacing: 1.2,
+          // Background and content
+          Column(
+            children: [
+              ClipPath(
+                clipper: TopCurveClipper(),
+                child: Container(
+                  height: screenHeight * 0.55,
+                  color: AppColors.primary,
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: screenHeight * 0.12),
+                    child: Text(
+                      'Brew Notes',
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.125,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Playfair Display',
+                        color: AppColors.latteFoam,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
 
-          SizedBox(height: screenHeight * 0.07),
+              SizedBox(height: screenHeight * 0.07),
 
-          Text(
-            'Welcome to your\ncoffee journal',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: screenWidth * 0.055,
-              fontStyle: FontStyle.italic,
-              fontWeight: FontWeight.w500,
-              fontFamily: 'Barlow',
-              color: AppColors.brown,
-              height: 1.5,
-              shadows: [
-                Shadow(
+              Text(
+                'Welcome to your\ncoffee journal',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: screenWidth * 0.055,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'Barlow',
                   color: AppColors.brown,
-                  blurRadius: 4,
-                  offset: Offset(0, 1),
+                  height: 1.5,
+                  shadows: [
+                    Shadow(
+                      color: AppColors.brown,
+                      blurRadius: 4,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+
+              const Spacer(),
+
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.08,
+                  vertical: screenHeight * 0.08,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        label: 'Log in',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(width: screenWidth * 0.04),
+                    Expanded(
+                      child: AppButton(label: 'Sign up', onPressed: () {}),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
 
-          const Spacer(),
-
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: screenWidth * 0.08,
-              vertical: screenHeight * 0.08,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: AppButton(
-                    label: 'Log in',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginPage(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(width: screenWidth * 0.04),
-                Expanded(
-                  child: AppButton(label: 'Sign up', onPressed: () {}),
-                )
-              ],
-            ),
+          // Floating theme toggle button
+          const Positioned(
+            top: 40,
+            right: 16,
+            child: ThemeToggleButton(iconColor: AppColors.latteFoam),
           ),
         ],
       ),

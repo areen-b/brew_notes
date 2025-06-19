@@ -20,6 +20,7 @@ class _LoginPageState extends State<LoginPage> {
 
     return Scaffold(
       backgroundColor: AppColors.latteFoam,
+
       body: Stack(
           children: [
           // Top curve background
@@ -45,6 +46,13 @@ class _LoginPageState extends State<LoginPage> {
               child: Container(
                 height: 140,
                 color: AppColors.latteFoam.withOpacity(0.3)
+              ),
+            ),
+            const Positioned(
+              top: 40,
+              right: 16,
+              child: ThemeToggleButton(
+                iconColor: AppColors.brown,
               ),
             ),
       SafeArea(
@@ -97,7 +105,24 @@ class _LoginPageState extends State<LoginPage> {
                 buildTextField("username"),
                 const SizedBox(height: 30),
                 buildTextField("password", isPassword: true),
-
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      // TODO: handle forgot password logic here
+                      print("Forgot password tapped!");
+                    },
+                    child: Text(
+                      "forgot password?",
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontStyle: FontStyle.italic,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,

@@ -130,4 +130,24 @@ class TopInverseCurveClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
+class ThemeToggleButton extends StatelessWidget {
+  final VoidCallback? onTap;
+  final Color? iconColor;
 
+  const ThemeToggleButton({super.key, this.onTap, this.iconColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap ?? () {
+        // TODO: Implement theme switch logic here
+        print("Theme toggle tapped!");
+      },
+      child: Icon(
+        Icons.dark_mode,
+        color: iconColor ?? AppColors.brown,
+        size: 30,
+      ),
+    );
+  }
+}
