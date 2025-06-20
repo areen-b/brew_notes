@@ -1,3 +1,4 @@
+import 'package:brew_notes/screens/forgotPassword_page.dart';
 import 'package:brew_notes/screens/signup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
@@ -12,7 +13,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -61,15 +61,11 @@ class _LoginPageState extends State<LoginPage> {
             padding: const EdgeInsets.only(top: 200.0, left: 15.0, right: 15.0),
             child: Column(
               children: [
-                // Tab Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Log in tab
                     GestureDetector(
-                      onTap: () {
-                        // Already on login page — do nothing
-                      },
+                      onTap: () {},
                       child: Text(
                         'Log in',
                         style: TextStyle(
@@ -81,7 +77,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(width: 24),
-                    // Sign up tab
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -102,15 +97,18 @@ class _LoginPageState extends State<LoginPage> {
                   ],
                 ),
                 const SizedBox(height: 60),
-                buildTextField("username"),
+                const CustomTextField(label: "username"),
                 const SizedBox(height: 30),
-                buildTextField("password", isPassword: true),
+                const PasswordField(),
                 const SizedBox(height: 10),
                 Align(
                   alignment: Alignment.centerRight,
                   child: GestureDetector(
                     onTap: () {
-                      // TODO: handle forgot password logic here
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ForgotPassword()),
+                      );
                       print("Forgot password tapped!");
                     },
                     child: Text(
@@ -126,49 +124,14 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
-                    child: AppButton(label: 'Log in', onPressed: () {})
+                  child: AppButton(label: 'Log in', onPressed: () {}),
                 ),
-
               ],
             ),
           ),
         ),
       ),
       ],
-      ),
-    );
-  }
-
-  Widget buildTextField(String label, {bool isPassword = false}) {
-    return TextFormField(
-      obscureText: isPassword ? _obscurePassword : false,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: AppColors.brown),
-        suffixIcon: isPassword
-            ? IconButton(
-          icon: Icon(
-            _obscurePassword ? Icons.visibility_off : Icons.visibility,
-            color: AppColors.brown,
-          ),
-          onPressed: () {
-            setState(() {
-              _obscurePassword = !_obscurePassword;
-            });
-          },
-        )
-            : null,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.brown, width: 2),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: AppColors.brown, width: 2.5),
-        ),
-        filled: true,
-        fillColor: AppColors.latteFoam,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       ),
     );
   }

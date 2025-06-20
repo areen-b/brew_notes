@@ -1,3 +1,4 @@
+import 'package:brew_notes/screens/forgotPassword_page.dart';
 import 'package:brew_notes/screens/landing_page.dart';
 import 'package:flutter/material.dart';
 

@@ -1,3 +1,4 @@
+import 'package:brew_notes/screens/signup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
@@ -86,7 +87,14 @@ class LandingPage extends StatelessWidget {
                     ),
                     SizedBox(width: screenWidth * 0.04),
                     Expanded(
-                      child: AppButton(label: 'Sign up', onPressed: () {}),
+                      child: AppButton(label: 'Sign up', onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                            builder: (context) => const SignUpPage(),
+                        ),
+                        );
+                      }),
                     ),
                   ],
                 ),
