@@ -22,7 +22,7 @@ class BrewNotes extends StatelessWidget {
       routes: {
         '/': (context) => const LandingPage(),
         '/map': (context) => const MapsPage(),
-        '/photos': (context) => const GalleryPage(),
+        '/gallery': (context) => const GalleryPage(),
         '/journal': (context) => const JournalPage(),
         '/profile': (context) => const ProfilePage(),
       },

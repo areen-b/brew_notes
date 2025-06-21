@@ -24,7 +24,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.pushNamed(context, '/map');
         break;
       case 1:
-        Navigator.pushNamed(context, '/photos');
+        Navigator.pushNamed(context, '/gallery');
         break;
       case 2:
         Navigator.pushNamed(context, '/journal');

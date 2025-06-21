@@ -23,7 +23,7 @@ class _MapsPageState extends State<MapsPage> {
         Navigator.pushNamed(context, '/map');
         break;
       case 1:
-        Navigator.pushNamed(context, '/photos');
+        Navigator.pushNamed(context, '/gallery');
         break;
       case 2:
         Navigator.pushNamed(context, '/journal');
@@ -79,17 +79,20 @@ class _MapsPageState extends State<MapsPage> {
               // Filter buttons row
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 35),
                 decoration: BoxDecoration(
-                  color: AppColors.brown.withOpacity(0.95),
+                  color: AppColors.brown.withOpacity(0.7),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("✔ places visited", style: TextStyle(color: Colors.white)),
-                    SizedBox(height: 8),
-                    Text("⭐ want to visit", style: TextStyle(color: Colors.white)),
+                    Text("☕️ places visited\n\n🤎 want to visit",
+                        style: TextStyle(
+                            color: Colors.white,
+                          fontSize: 20,
+                          fontFamily: 'Barlow',
+                        )),
                   ],
                 ),
               ),
@@ -98,7 +101,7 @@ class _MapsPageState extends State<MapsPage> {
 
               // Google Map directly below
               Container(
-                height: 420,
+                height: 500,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [

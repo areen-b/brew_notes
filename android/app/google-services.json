@@ -1,0 +1,29 @@
+ {
+  "project_info": {
+    "project_number": "926323434708",
+    "project_id": "brew-notes-84b16",
+    "storage_bucket": "brew-notes-84b16.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:926323434708:android:6a08b4a628498768f0c741",
+        "android_client_info": {
+          "package_name": "areen.brewnotes.brew_notes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBE3wY6GJslfuLKo7VIIiStrwZcovWbQ3o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
