@@ -1,3 +1,4 @@
+import 'package:brew_notes/screens/home_page.dart';
 import 'package:brew_notes/screens/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
@@ -92,7 +93,12 @@ class _SignUpPageState extends State<SignUpPage> {
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
-                    child: AppButton(label: 'Sign up', onPressed: () {}),
+                    child: AppButton(label: 'Sign up', onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HomePage()),
+                      );
+                    }),
                   ),
                 ],
               ),

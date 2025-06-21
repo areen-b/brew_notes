@@ -1,5 +1,9 @@
-import 'package:brew_notes/screens/forgotPassword_page.dart';
+import 'package:brew_notes/screens/forgot_password_page.dart';
+import 'package:brew_notes/screens/gallery_page.dart';
+import 'package:brew_notes/screens/journal_page.dart';
 import 'package:brew_notes/screens/landing_page.dart';
+import 'package:brew_notes/screens/maps_page.dart';
+import 'package:brew_notes/screens/profile_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -14,7 +18,15 @@ class BrewNotes extends StatelessWidget {
     return MaterialApp(
       title: 'Brew Notes',
       debugShowCheckedModeBanner: false,
-      home: LandingPage(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const LandingPage(),
+        '/map': (context) => const MapsPage(),
+        '/photos': (context) => const GalleryPage(),
+        '/journal': (context) => const JournalPage(),
+        '/profile': (context) => const ProfilePage(),
+      },
     );
+
   }
 }

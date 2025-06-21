@@ -1,4 +1,5 @@
-import 'package:brew_notes/screens/forgotPassword_page.dart';
+import 'package:brew_notes/screens/forgot_password_page.dart';
+import 'package:brew_notes/screens/home_page.dart';
 import 'package:brew_notes/screens/signup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
@@ -124,7 +125,12 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
-                  child: AppButton(label: 'Log in', onPressed: () {}),
+                  child: AppButton(label: 'Log in', onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const HomePage()),
+                    );
+                  }),
                 ),
               ],
             ),

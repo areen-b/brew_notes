@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
+//buttons
 class AppButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
@@ -33,6 +34,7 @@ class AppButton extends StatelessWidget {
   }
 }
 
+//top curve for landing page
 class TopCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -53,6 +55,7 @@ class TopCurveClipper extends CustomClipper<Path> {
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
+//bottom curve for forgot password/enter code
 class BottomCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -79,6 +82,7 @@ class BottomCurveClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
+//top curve for login/signup/forgot password/enter code page
 class TopInverseCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -106,6 +110,7 @@ class TopInverseCurveClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
+//top inverse curve with layers
 class TopCurveHeader extends StatelessWidget {
   final double height1;
   final double height2;
@@ -153,6 +158,7 @@ class TopCurveHeader extends StatelessWidget {
   }
 }
 
+//back button
 class BackButtonText extends StatelessWidget {
   final Color color;
 
@@ -181,6 +187,7 @@ class BackButtonText extends StatelessWidget {
   }
 }
 
+//light/dark mode
 class ThemeToggleButton extends StatelessWidget {
   final VoidCallback? onTap;
   final Color? iconColor;
@@ -203,6 +210,7 @@ class ThemeToggleButton extends StatelessWidget {
   }
 }
 
+//text field
 class CustomTextField extends StatelessWidget {
   final String label;
   final TextEditingController? controller;
@@ -222,6 +230,7 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
+//password for signup/login
 class PasswordField extends StatefulWidget {
   final String label;
   final TextEditingController? controller;
@@ -236,6 +245,7 @@ class PasswordField extends StatefulWidget {
   State<PasswordField> createState() => _PasswordFieldState();
 }
 
+//password for signup/login
 class _PasswordFieldState extends State<PasswordField> {
   bool _obscure = true;
 
@@ -262,6 +272,7 @@ class _PasswordFieldState extends State<PasswordField> {
   }
 }
 
+//confirm password for sign up
 class ConfirmPasswordField extends StatefulWidget {
   final TextEditingController? controller;
 
@@ -274,6 +285,7 @@ class ConfirmPasswordField extends StatefulWidget {
   State<ConfirmPasswordField> createState() => _ConfirmPasswordFieldState();
 }
 
+//confirm password for sign up
 class _ConfirmPasswordFieldState extends State<ConfirmPasswordField> {
   bool _obscure = true;
 
@@ -300,6 +312,7 @@ class _ConfirmPasswordFieldState extends State<ConfirmPasswordField> {
   }
 }
 
+//enter code field after forgot password
 class CodeInputField extends StatelessWidget {
   final void Function(String)? onChanged;
   final void Function(String)? onCompleted;
@@ -336,6 +349,114 @@ class CodeInputField extends StatelessWidget {
       enableActiveFill: true,
       onChanged: onChanged ?? (value) {},
       onCompleted: onCompleted ?? (value) {},
+    );
+  }
+}
+
+//bottom nav for after logging in
+class NavIcon extends StatelessWidget {
+  final IconData icon;
+  final bool isActive;
+
+  const NavIcon({
+    super.key,
+    required this.icon,
+    this.isActive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(right: 20, left: 20, top: 10, bottom: 10),
+      decoration: BoxDecoration(
+        color: isActive
+            ? AppColors.latteFoam.withOpacity(0.8)
+            : AppColors.latteFoam.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.brown.withOpacity(0.3),
+            offset: const Offset(3, 9),
+            blurRadius: 9,
+          )
+        ],
+      ),
+      child: Icon(
+        icon,
+        color: AppColors.brown,
+        size: 38,
+      ),
+    );
+  }
+}
+class NavBar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const NavBar({
+    super.key,
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    List<IconData> icons = [
+      Icons.map,
+      Icons.photo,
+      Icons.book,
+      Icons.person,
+    ];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.brown.withOpacity(0.8),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: List.generate(icons.length, (index) {
+          return GestureDetector(
+            onTap: () => onTap(index),
+            child: NavIcon(
+              icon: icons[index],
+              isActive: currentIndex == index,
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+//cards used for home page
+class HomeCard extends StatelessWidget {
+  final List<Widget> children; // Accept multiple widgets
+
+  const HomeCard({super.key, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 45),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.brown.withOpacity(0.3),
+            offset: const Offset(3, 9),
+            blurRadius: 9,
+          )
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center, // centers vertically
+        crossAxisAlignment: CrossAxisAlignment.center, // centers horizontally
+        children: children,
+      ),
     );
   }
 }

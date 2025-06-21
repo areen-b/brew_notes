@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
-import 'package:brew_notes/screens/enterCode_page.dart';
+import 'package:brew_notes/screens/enter_code_page.dart';
 
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
