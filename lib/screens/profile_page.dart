@@ -19,16 +19,16 @@ class _ProfilePageState extends State<ProfilePage> {
 
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, '/map');
+        Navigator.pushReplacementNamed(context, '/map');
         break;
       case 1:
-        Navigator.pushNamed(context, '/gallery');
+        Navigator.pushReplacementNamed(context, '/gallery');
         break;
       case 2:
-        Navigator.pushNamed(context, '/journal');
+        Navigator.pushReplacementNamed(context, '/journal');
         break;
       case 3:
-        break;
+        break; // already on profile
     }
   }
 
@@ -37,25 +37,40 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: AppColors.latteFoam,
       body: SafeArea(
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Text(
-                'profile',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.brown,
-                ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              // Top row: title + home + theme
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'profile',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.brown,
+                    ),
+                  ),
+                  Row(
+                    children: const [
+                      HomeButton(),
+                      SizedBox(width: 8),
+                      ThemeToggleButton(iconColor: AppColors.brown),
+                    ],
+                  ),
+                ],
               ),
-            ),
-            const Spacer(),
-            NavBar(
-              currentIndex: _selectedIndex,
-              onTap: _onNavTap,
-            ),
-          ],
+              const Spacer(),
+
+              // Bottom nav bar
+              NavBar(
+                currentIndex: _selectedIndex,
+                onTap: _onNavTap,
+              ),
+            ],
+          ),
         ),
       ),
     );

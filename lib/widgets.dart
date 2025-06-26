@@ -187,6 +187,52 @@ class BackButtonText extends StatelessWidget {
   }
 }
 
+//home button
+class HomeButton extends StatelessWidget {
+  final Color iconColor;
+
+  const HomeButton({
+    super.key,
+    this.iconColor = AppColors.brown,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.home),
+      color: iconColor,
+      iconSize: 34,
+      tooltip: 'Back to Home',
+      onPressed: () {
+        Navigator.pushReplacementNamed(context, '/home');
+      },
+    );
+  }
+}
+
+
+class EditButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const EditButton({super.key, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.sage,
+      borderRadius: BorderRadius.circular(30),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(30),
+        child: const Padding(
+          padding: EdgeInsets.all(10),
+          child: Icon(Icons.edit, color: AppColors.brown, size: 24),
+        ),
+      ),
+    );
+  }
+}
+
 //light/dark mode
 class ThemeToggleButton extends StatelessWidget {
   final VoidCallback? onTap;
@@ -457,6 +503,34 @@ class HomeCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center, // centers horizontally
         children: children,
       ),
+    );
+  }
+}
+
+//star rating
+class StarRating extends StatelessWidget {
+  final int rating;
+  final ValueChanged<int> onRatingChanged;
+
+  const StarRating({
+    super.key,
+    required this.rating,
+    required this.onRatingChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: List.generate(5, (index) {
+        return GestureDetector(
+          onTap: () => onRatingChanged(index + 1),
+          child: Icon(
+            index < rating ? Icons.star : Icons.star_border,
+            color: AppColors.brown,
+          ),
+        );
+      }),
     );
   }
 }

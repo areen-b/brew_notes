@@ -5,7 +5,7 @@ class AppColors{
   static const latteFoam = Color(0xFFE8DFD6);     //background
   static const primary = Color(0xFF4E342E);       //main brown
   static const brown = Color(0xFF392723);     //darker brown
-  static const caramel = Color(0xFFD6A77A);       //edit entry box color
+  static const caramel = Color(0xFFDCB893);       //edit entry box color
   static const sage = Color(0xFFA7B89E);          //edit entry box color
   static const error = Color (0xFFC84343);
 

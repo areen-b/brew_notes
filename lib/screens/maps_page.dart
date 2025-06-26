@@ -70,7 +70,12 @@ class _MapsPageState extends State<MapsPage> {
                     ),
                   ),
                   const SizedBox(width: 20),
-                  const ThemeToggleButton(iconColor: AppColors.brown),
+                  Row(
+                    children: [
+                      const HomeButton(),
+                      const ThemeToggleButton(iconColor: AppColors.brown),
+                    ],
+                  ),
                 ],
               ),
 

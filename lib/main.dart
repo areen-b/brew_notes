@@ -4,6 +4,8 @@ import 'package:brew_notes/screens/journal_page.dart';
 import 'package:brew_notes/screens/landing_page.dart';
 import 'package:brew_notes/screens/maps_page.dart';
 import 'package:brew_notes/screens/profile_page.dart';
+import 'package:brew_notes/screens/new_entry_page.dart';
+import 'package:brew_notes/screens/home_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -21,9 +23,11 @@ class BrewNotes extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const LandingPage(),
+        '/home': (context) => const HomePage(),
         '/map': (context) => const MapsPage(),
         '/gallery': (context) => const GalleryPage(),
         '/journal': (context) => const JournalPage(),
+        '/add': (context) => const EntryPage(),
         '/profile': (context) => const ProfilePage(),
       },
     );

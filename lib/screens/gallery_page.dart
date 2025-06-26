@@ -19,15 +19,15 @@ class _GalleryPageState extends State<GalleryPage> {
 
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, '/map');
+        Navigator.pushReplacementNamed(context, '/map');
         break;
       case 1:
-        break;
+        break; // Already on gallery
       case 2:
-        Navigator.pushNamed(context, '/journal');
+        Navigator.pushReplacementNamed(context, '/journal');
         break;
       case 3:
-        Navigator.pushNamed(context, '/profile');
+        Navigator.pushReplacementNamed(context, '/profile');
         break;
     }
   }
@@ -37,25 +37,41 @@ class _GalleryPageState extends State<GalleryPage> {
     return Scaffold(
       backgroundColor: AppColors.latteFoam,
       body: SafeArea(
-        child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Text(
-                'gallery',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.brown,
-                ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              // Top row with title + buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'gallery',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.brown,
+                    ),
+                  ),
+                  Row(
+                    children: const [
+                      HomeButton(),
+                      SizedBox(width: 8),
+                      ThemeToggleButton(iconColor: AppColors.brown),
+                    ],
+                  ),
+                ],
               ),
-            ),
-            const Spacer(),
-            NavBar(
-              currentIndex: _selectedIndex,
-              onTap: _onNavTap,
-            ),
-          ],
+
+              const Spacer(),
+
+              // Bottom nav
+              NavBar(
+                currentIndex: _selectedIndex,
+                onTap: _onNavTap,
+              ),
+            ],
+          ),
         ),
       ),
     );
