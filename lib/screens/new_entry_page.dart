@@ -4,7 +4,9 @@ import 'package:brew_notes/widgets.dart';
 import 'journal_entry.dart';
 
 class EntryPage extends StatefulWidget {
-  const EntryPage({super.key});
+  final JournalEntry? initialEntry;
+
+  const EntryPage({super.key, this.initialEntry});
 
   @override
   State<EntryPage> createState() => _EntryPageState();
@@ -13,10 +15,58 @@ class EntryPage extends StatefulWidget {
 class _EntryPageState extends State<EntryPage> {
   int _selectedIndex = 2;
   int _rating = 0;
+  bool _isFormComplete = false;
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+
+  final List<String> _months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  final List<int> _days = List.generate(31, (i) => i + 1);
+  final List<int> _years = List.generate(26, (i) => 2000 + i);
+
+  String? _selectedMonth;
+  int? _selectedDay;
+  int? _selectedYear;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.initialEntry != null) {
+      final entry = widget.initialEntry!;
+      _titleController.text = entry.title;
+      _addressController.text = entry.address;
+      _notesController.text = entry.notes.join('\n');
+      _rating = entry.rating.toInt();
+
+      final parts = entry.date.split(' ');
+      if (parts.length == 3) {
+        _selectedMonth = parts[0];
+        _selectedDay = int.tryParse(parts[1].replaceAll(',', ''));
+        _selectedYear = int.tryParse(parts[2]);
+      }
+    }
+
+    _titleController.addListener(_checkFormComplete);
+    _addressController.addListener(_checkFormComplete);
+    _notesController.addListener(_checkFormComplete);
+  }
+
+  void _checkFormComplete() {
+    final hasDate = _selectedMonth != null && _selectedDay != null && _selectedYear != null;
+    final hasTitle = _titleController.text.trim().isNotEmpty;
+    final hasAddress = _addressController.text.trim().isNotEmpty;
+    final hasNotes = _notesController.text.trim().isNotEmpty;
+    final hasImage = true; // placeholder always valid
+
+    setState(() {
+      _isFormComplete = hasDate && hasTitle && hasAddress && hasNotes && hasImage;
+    });
+  }
 
   void _onNavTap(int index) {
     setState(() {
@@ -68,6 +118,7 @@ class _EntryPageState extends State<EntryPage> {
               ),
               const SizedBox(height: 20),
 
+              // Header
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -81,15 +132,43 @@ class _EntryPageState extends State<EntryPage> {
               ),
               const SizedBox(height: 12),
 
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'date: month dd, yyyy',
-                  style: TextStyle(color: AppColors.brown),
-                ),
+              // Date dropdowns
+              Row(
+                children: [
+                  _buildDropdown<String>(
+                    label: 'month',
+                    value: _selectedMonth,
+                    items: _months,
+                    onChanged: (val) {
+                      setState(() => _selectedMonth = val);
+                      _checkFormComplete();
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _buildDropdown<int>(
+                    label: 'day',
+                    value: _selectedDay,
+                    items: _days,
+                    onChanged: (val) {
+                      setState(() => _selectedDay = val);
+                      _checkFormComplete();
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _buildDropdown<int>(
+                    label: 'year',
+                    value: _selectedYear,
+                    items: _years,
+                    onChanged: (val) {
+                      setState(() => _selectedYear = val);
+                      _checkFormComplete();
+                    },
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
 
+              // Entry form
               Expanded(
                 child: SingleChildScrollView(
                   child: Container(
@@ -102,118 +181,127 @@ class _EntryPageState extends State<EntryPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Title Input
-                        TextField(
-                          controller: _titleController,
-                          style: const TextStyle(color: AppColors.latteFoam),
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: AppColors.primary,
-                            hintText: 'location name',
-                            hintStyle: const TextStyle(color: AppColors.latteFoam),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                          ),
-                        ),
+                        _buildTextField(_titleController, 'location name'),
                         const SizedBox(height: 16),
-
-                        // Address + Rating
                         Row(
                           children: [
                             Expanded(
-                              child: TextField(
-                                controller: _addressController,
-                                style: const TextStyle(color: AppColors.brown),
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: AppColors.caramel,
-                                  hintText: 'address',
-                                  hintStyle: const TextStyle(color: AppColors.brown),
-                                  contentPadding: const EdgeInsets.all(12),
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                              child: SizedBox(
+                                height: 80,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.caramel,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 6,
+                                        offset: Offset(2, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: TextField(
+                                    controller: _addressController,
+                                    expands: true,
+                                    maxLines: null,
+                                    style: const TextStyle(color: AppColors.brown),
+                                    decoration: const InputDecoration(
+                                      hintText: 'address',
+                                      hintStyle: TextStyle(color: AppColors.brown),
+                                      contentPadding: EdgeInsets.all(12),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.transparent,
+                                    ),
+                                  ),
                                 ),
-                                maxLines: 3,
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: Container(
+                              child: SizedBox(
                                 height: 80,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.caramel,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: StarRating(
-                                  rating: _rating,
-                                  onRatingChanged: (value) {
-                                    setState(() {
-                                      _rating = value;
-                                    });
-                                  },
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.caramel,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+                                  ),
+                                  child: StarRating(
+                                    rating: _rating,
+                                    onRatingChanged: (val) {
+                                      setState(() => _rating = val);
+                                      _checkFormComplete();
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 12),
-
-                        // Notes
-                        TextField(
-                          controller: _notesController,
-                          style: const TextStyle(color: AppColors.latteFoam),
-                          maxLines: 4,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: AppColors.sage.withOpacity(0.75),
-                            hintText: 'describe your visit/thoughts',
-                            hintStyle: const TextStyle(color: AppColors.latteFoam),
-                            contentPadding: const EdgeInsets.all(12),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                        SizedBox(
+                          height: 120,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.sage.withOpacity(0.75),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+                            ),
+                            child: TextField(
+                              controller: _notesController,
+                              style: const TextStyle(color: AppColors.latteFoam),
+                              expands: true,
+                              maxLines: null,
+                              decoration: const InputDecoration(
+                                hintText: 'describe your visit/thoughts',
+                                hintStyle: TextStyle(color: AppColors.latteFoam),
+                                contentPadding: EdgeInsets.all(12),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16)), borderSide: BorderSide.none),
+                                filled: true,
+                                fillColor: Colors.transparent,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 20),
-
-                        // Upload photo (placeholder)
                         Container(
                           height: 300,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: AppColors.caramel.withOpacity(0.4),
                             borderRadius: BorderRadius.circular(20),
+                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(2, 4))],
                           ),
-                          child: const Text(
-                            'upload a picture:',
-                            style: TextStyle(color: AppColors.latteFoam),
-                          ),
+                          child: const Text('upload a picture:', style: TextStyle(color: AppColors.latteFoam)),
                         ),
-
                         const SizedBox(height: 20),
-
-                        // Post button
                         Center(
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: _isFormComplete
+                                ? () {
+                              final date = '$_selectedMonth $_selectedDay, $_selectedYear';
                               final entry = JournalEntry(
                                 title: _titleController.text.trim(),
                                 address: _addressController.text.trim(),
                                 rating: _rating.toDouble(),
                                 notes: _notesController.text.trim().split('\n').where((line) => line.isNotEmpty).toList(),
-                                imagePath: "assets/images/coffee.jpg", // Placeholder
+                                imagePath: "assets/images/coffee.jpg",
+                                date: date,
                               );
-
                               Navigator.pop(context, entry);
-                            },
+                            }
+                                : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.brown,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                             ),
-                            child: const Text(
-                              'post',
-                              style: TextStyle(fontSize: 18, color: AppColors.latteFoam),
-                            ),
+                            child: const Text('post', style: TextStyle(fontSize: 18, color: AppColors.latteFoam)),
                           ),
                         ),
                       ],
@@ -221,12 +309,58 @@ class _EntryPageState extends State<EntryPage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
               NavBar(currentIndex: _selectedIndex, onTap: _onNavTap),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDropdown<T>({
+    required String label,
+    required T? value,
+    required List<T> items,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+        ),
+        child: DropdownButtonFormField<T>(
+          value: value,
+          items: items.map((item) => DropdownMenuItem(value: item, child: Text(item.toString()))).toList(),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: const TextStyle(color: AppColors.latteFoam),
+            floatingLabelBehavior: FloatingLabelBehavior.never,
+            filled: true,
+            fillColor: AppColors.primary,
+            border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)), borderSide: BorderSide.none),
+          ),
+          dropdownColor: AppColors.primary,
+          style: const TextStyle(color: AppColors.latteFoam),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hint,
+      {Color fill = AppColors.primary, Color hintColor = AppColors.latteFoam}) {
+    return TextField(
+      controller: controller,
+      style: TextStyle(color: hintColor),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: fill,
+        hintText: hint,
+        hintStyle: TextStyle(color: hintColor, fontFamily: 'Playfair Display'),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
       ),
     );
   }

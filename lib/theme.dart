@@ -6,8 +6,8 @@ class AppColors{
   static const primary = Color(0xFF4E342E);       //main brown
   static const brown = Color(0xFF392723);     //darker brown
   static const caramel = Color(0xFFDCB893);       //edit entry box color
-  static const sage = Color(0xFFA7B89E);          //edit entry box color
-  static const error = Color (0xFFC84343);
+  static const sage = Color(0xFF7C8574);          //edit entry box color
+  static const error = Color (0xFF972A2A);
 
   //dark mode
   static const darkBackground = Color(0xFF2D241B);  // background

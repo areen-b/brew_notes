@@ -4,6 +4,7 @@ class JournalEntry {
   final double rating;
   final List<String> notes;
   final String imagePath;
+  final String date;
 
   JournalEntry({
     required this.title,
@@ -11,5 +12,6 @@ class JournalEntry {
     required this.rating,
     required this.notes,
     required this.imagePath,
+    required this.date,
   });
 }

@@ -210,7 +210,6 @@ class HomeButton extends StatelessWidget {
   }
 }
 
-
 class EditButton extends StatelessWidget {
   final VoidCallback onPressed;
 
