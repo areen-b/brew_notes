@@ -1,11 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
 import 'journal_entry.dart';
 
 class EntryPage extends StatefulWidget {
   final JournalEntry? initialEntry;
-
   const EntryPage({super.key, this.initialEntry});
 
   @override
@@ -31,17 +32,18 @@ class _EntryPageState extends State<EntryPage> {
   String? _selectedMonth;
   int? _selectedDay;
   int? _selectedYear;
+  File? _selectedImage;
 
   @override
   void initState() {
     super.initState();
-
     if (widget.initialEntry != null) {
       final entry = widget.initialEntry!;
       _titleController.text = entry.title;
       _addressController.text = entry.address;
       _notesController.text = entry.notes.join('\n');
       _rating = entry.rating.toInt();
+      _selectedImage = entry.imageFile;
 
       final parts = entry.date.split(' ');
       if (parts.length == 3) {
@@ -61,26 +63,32 @@ class _EntryPageState extends State<EntryPage> {
     final hasTitle = _titleController.text.trim().isNotEmpty;
     final hasAddress = _addressController.text.trim().isNotEmpty;
     final hasNotes = _notesController.text.trim().isNotEmpty;
-    final hasImage = true; // placeholder always valid
+    final hasImage = _selectedImage != null;
 
     setState(() {
       _isFormComplete = hasDate && hasTitle && hasAddress && hasNotes && hasImage;
     });
   }
 
-  void _onNavTap(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+        _checkFormComplete();
+      });
+    }
+  }
 
+  void _onNavTap(int index) {
+    setState(() => _selectedIndex = index);
     switch (index) {
       case 0:
         Navigator.pushReplacementNamed(context, '/map');
         break;
       case 1:
         Navigator.pushReplacementNamed(context, '/gallery');
-        break;
-      case 2:
         break;
       case 3:
         Navigator.pushReplacementNamed(context, '/profile');
@@ -105,7 +113,7 @@ class _EntryPageState extends State<EntryPage> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // Top bar
+              // Top Bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -113,62 +121,44 @@ class _EntryPageState extends State<EntryPage> {
                     onTap: () => Navigator.pop(context),
                     child: const BackButtonText(color: AppColors.brown),
                   ),
-                  const ThemeToggleButton(iconColor: AppColors.brown),
+                  Row(
+                    children: const [
+                      HomeButton(),
+                      SizedBox(width: 8),
+                      ThemeToggleButton(iconColor: AppColors.brown),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
 
-              // Header
               const Align(
                 alignment: Alignment.centerLeft,
-                child: Text(
-                  'add a new entry',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.brown,
-                  ),
-                ),
+                child: Text('add a new entry', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.brown)),
               ),
               const SizedBox(height: 12),
 
-              // Date dropdowns
+              // Date Dropdowns
               Row(
                 children: [
-                  _buildDropdown<String>(
-                    label: 'month',
-                    value: _selectedMonth,
-                    items: _months,
-                    onChanged: (val) {
-                      setState(() => _selectedMonth = val);
-                      _checkFormComplete();
-                    },
-                  ),
+                  _buildDropdown<String>(label: 'month', value: _selectedMonth, items: _months, onChanged: (val) {
+                    setState(() => _selectedMonth = val);
+                    _checkFormComplete();
+                  }),
                   const SizedBox(width: 8),
-                  _buildDropdown<int>(
-                    label: 'day',
-                    value: _selectedDay,
-                    items: _days,
-                    onChanged: (val) {
-                      setState(() => _selectedDay = val);
-                      _checkFormComplete();
-                    },
-                  ),
+                  _buildDropdown<int>(label: 'day', value: _selectedDay, items: _days, onChanged: (val) {
+                    setState(() => _selectedDay = val);
+                    _checkFormComplete();
+                  }),
                   const SizedBox(width: 8),
-                  _buildDropdown<int>(
-                    label: 'year',
-                    value: _selectedYear,
-                    items: _years,
-                    onChanged: (val) {
-                      setState(() => _selectedYear = val);
-                      _checkFormComplete();
-                    },
-                  ),
+                  _buildDropdown<int>(label: 'year', value: _selectedYear, items: _years, onChanged: (val) {
+                    setState(() => _selectedYear = val);
+                    _checkFormComplete();
+                  }),
                 ],
               ),
               const SizedBox(height: 20),
 
-              // Entry form
               Expanded(
                 child: SingleChildScrollView(
                   child: Container(
@@ -179,65 +169,52 @@ class _EntryPageState extends State<EntryPage> {
                       boxShadow: const [BoxShadow(blurRadius: 8, color: Colors.black26)],
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildTextField(_titleController, 'location name'),
                         const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
-                              child: SizedBox(
+                              child: Container(
                                 height: 80,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColors.caramel,
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: const [
-                                      BoxShadow(
-                                        color: Colors.black26,
-                                        blurRadius: 6,
-                                        offset: Offset(2, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: TextField(
-                                    controller: _addressController,
-                                    expands: true,
-                                    maxLines: null,
-                                    style: const TextStyle(color: AppColors.brown),
-                                    decoration: const InputDecoration(
-                                      hintText: 'address',
-                                      hintStyle: TextStyle(color: AppColors.brown),
-                                      contentPadding: EdgeInsets.all(12),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(16)),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.transparent,
-                                    ),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.caramel,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+                                ),
+                                child: TextField(
+                                  controller: _addressController,
+                                  expands: true,
+                                  maxLines: null,
+                                  style: const TextStyle(color: AppColors.brown),
+                                  decoration: const InputDecoration(
+                                    hintText: 'address',
+                                    hintStyle: TextStyle(color: AppColors.brown),
+                                    contentPadding: EdgeInsets.all(0),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16)), borderSide: BorderSide.none),
+                                    filled: true,
+                                    fillColor: Colors.transparent,
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: SizedBox(
+                              child: Container(
                                 height: 80,
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.caramel,
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
-                                  ),
-                                  child: StarRating(
-                                    rating: _rating,
-                                    onRatingChanged: (val) {
-                                      setState(() => _rating = val);
-                                      _checkFormComplete();
-                                    },
-                                  ),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.caramel,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+                                ),
+                                child: StarRating(
+                                  rating: _rating,
+                                  onRatingChanged: (val) {
+                                    setState(() => _rating = val);
+                                    _checkFormComplete();
+                                  },
                                 ),
                               ),
                             ),
@@ -269,15 +246,23 @@ class _EntryPageState extends State<EntryPage> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        Container(
-                          height: 300,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: AppColors.caramel.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(2, 4))],
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            height: 300,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: AppColors.caramel.withOpacity(0.4),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(2, 4))],
+                            ),
+                            child: _selectedImage == null
+                                ? const Text('tap to upload a picture', style: TextStyle(color: AppColors.latteFoam))
+                                : ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.file(_selectedImage!, height: 300, width: double.infinity, fit: BoxFit.cover),
+                            ),
                           ),
-                          child: const Text('upload a picture:', style: TextStyle(color: AppColors.latteFoam)),
                         ),
                         const SizedBox(height: 20),
                         Center(
@@ -290,8 +275,8 @@ class _EntryPageState extends State<EntryPage> {
                                 address: _addressController.text.trim(),
                                 rating: _rating.toDouble(),
                                 notes: _notesController.text.trim().split('\n').where((line) => line.isNotEmpty).toList(),
-                                imagePath: "assets/images/coffee.jpg",
                                 date: date,
+                                imageFile: _selectedImage,
                               );
                               Navigator.pop(context, entry);
                             }

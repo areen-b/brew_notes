@@ -3,6 +3,7 @@ import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
 import 'journal_entry.dart';
 import 'new_entry_page.dart';
+
 class JournalPage extends StatefulWidget {
   const JournalPage({super.key});
 
@@ -13,6 +14,11 @@ class JournalPage extends StatefulWidget {
 class _JournalPageState extends State<JournalPage> {
   List<JournalEntry> entries = [];
   int _selectedIndex = 2;
+
+  final List<String> _monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
   void _onNavTap(int index) {
     if (_selectedIndex == index) return;
@@ -30,8 +36,23 @@ class _JournalPageState extends State<JournalPage> {
     }
   }
 
+  DateTime _parseDate(String date) {
+    final parts = date.replaceAll(',', '').split(' ');
+    if (parts.length == 3) {
+      final month = parts[0];
+      final day = int.tryParse(parts[1]) ?? 1;
+      final year = int.tryParse(parts[2]) ?? 2000;
+      final monthIndex = _monthNames.indexOf(month) + 1;
+      return DateTime(year, monthIndex, day);
+    }
+    return DateTime(2000);
+  }
+
   void _addNewEntry(JournalEntry entry) {
-    setState(() => entries.insert(0, entry));
+    setState(() {
+      entries.add(entry);
+      entries.sort((a, b) => _parseDate(b.date).compareTo(_parseDate(a.date)));
+    });
   }
 
   void _deleteEntry(int index) {
@@ -53,13 +74,12 @@ class _JournalPageState extends State<JournalPage> {
   void _navigateToEditPage(int index) async {
     final updatedEntry = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => EntryPage(initialEntry: entries[index]),
-      ),
+      MaterialPageRoute(builder: (context) => EntryPage(initialEntry: entries[index])),
     );
     if (updatedEntry is JournalEntry) {
       setState(() {
         entries[index] = updatedEntry;
+        entries.sort((a, b) => _parseDate(b.date).compareTo(_parseDate(a.date)));
       });
     }
   }
@@ -77,10 +97,23 @@ class _JournalPageState extends State<JournalPage> {
               // Top bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text('daily entries',
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, fontFamily: 'Playfair Display', color: AppColors.brown)),
-                  ThemeToggleButton(iconColor: AppColors.brown),
+                children: [
+                  const Text(
+                    'daily entries',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Playfair Display',
+                      color: AppColors.brown,
+                    ),
+                  ),
+                  Row(
+                    children: const [
+                      HomeButton(),
+                      SizedBox(width: 8),
+                      ThemeToggleButton(iconColor: AppColors.brown),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -194,7 +227,8 @@ class _JournalPageState extends State<JournalPage> {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: entry.notes
-                                            .map((note) => Text('• $note', style: const TextStyle(color: AppColors.latteFoam)))
+                                            .map((note) => Text('• $note',
+                                            style: const TextStyle(color: AppColors.latteFoam)))
                                             .toList(),
                                       ),
                                     ),
@@ -202,8 +236,12 @@ class _JournalPageState extends State<JournalPage> {
                                   const SizedBox(height: 12),
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
-                                    child: Image.asset(entry.imagePath,
-                                        height: 200, width: double.infinity, fit: BoxFit.cover),
+                                    child: Image.file(
+                                      entry.imageFile!,
+                                      height: 200,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -235,8 +273,6 @@ class _JournalPageState extends State<JournalPage> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Add Button
               Center(
                 child: ElevatedButton.icon(
                   onPressed: _navigateToAddPage,
