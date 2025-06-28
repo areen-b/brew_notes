@@ -7,8 +7,14 @@ import 'package:brew_notes/screens/profile_page.dart';
 import 'package:brew_notes/screens/new_entry_page.dart';
 import 'package:brew_notes/screens/home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const BrewNotes());
 }
 
@@ -31,6 +37,5 @@ class BrewNotes extends StatelessWidget {
         '/profile': (context) => const ProfilePage(),
       },
     );
-
   }
 }
