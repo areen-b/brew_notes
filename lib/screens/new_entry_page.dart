@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
 import 'journal_entry.dart';
+import 'package:brew_notes/global.dart';
 
 class EntryPage extends StatefulWidget {
   final JournalEntry? initialEntry;
@@ -270,6 +271,10 @@ class _EntryPageState extends State<EntryPage> {
                             onPressed: _isFormComplete
                                 ? () {
                               final date = '$_selectedMonth $_selectedDay, $_selectedYear';
+                              if (_selectedImage != null && !galleryImages.contains(_selectedImage)) {
+                                galleryImages.add(_selectedImage!);
+                              }
+
                               final entry = JournalEntry(
                                 title: _titleController.text.trim(),
                                 address: _addressController.text.trim(),
@@ -278,6 +283,8 @@ class _EntryPageState extends State<EntryPage> {
                                 date: date,
                                 imageFile: _selectedImage,
                               );
+                              journalEntries.add(entry);
+
                               Navigator.pop(context, entry);
                             }
                                 : null,

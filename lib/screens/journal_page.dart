@@ -117,7 +117,7 @@ class _JournalPageState extends State<JournalPage> {
                 ],
               ),
               const SizedBox(height: 8),
-              const Text('your saved moments', style: TextStyle(fontSize: 16, color: AppColors.brown)),
+              const Text('your saved moments ☕️', style: TextStyle(fontSize: 18, color: AppColors.brown)),
               const SizedBox(height: 20),
 
               // Entry list or empty state
