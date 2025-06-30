@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:brew_notes/screens/login_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -30,6 +32,14 @@ class _ProfilePageState extends State<ProfilePage> {
       case 3:
         break; // already on profile
     }
+  }
+
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
   }
 
   @override
@@ -63,6 +73,17 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
               const Spacer(),
+
+              // Logout Button
+              SizedBox(
+                width: double.infinity,
+                child: AppButton(
+                  label: 'Log out',
+                  onPressed: _logout,
+                ),
+              ),
+
+              const SizedBox(height: 24),
 
               // Bottom nav bar
               NavBar(
