@@ -77,6 +77,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                     SizedBox(
                       width: double.infinity,
                       child: AppButton(
+                        color: AppColors.brown,
                         label: 'send reset link',
                         onPressed: _sendResetEmail,
                       ),

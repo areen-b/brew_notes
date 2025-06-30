@@ -100,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
-                    child: AppButton(label: 'Log in', onPressed: _loginUser),
+                    child: AppButton(label: 'Log in', color: AppColors.brown, onPressed: _loginUser),
                   ),
                   const SizedBox(height: 30),
                   if (_error != null)

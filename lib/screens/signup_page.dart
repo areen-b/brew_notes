@@ -34,6 +34,7 @@ class _SignUpPageState extends State<SignUpPage> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
+    final username = _usernameController.text.trim();
 
     if (password != confirmPassword) {
       setState(() => _confirmPasswordError = 'Passwords do not match');
@@ -51,7 +52,12 @@ class _SignUpPageState extends State<SignUpPage> {
         password: password,
       );
 
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
+      await FirebaseAuth.instance.currentUser!.updateDisplayName(username);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
         setState(() => _emailError = 'this email is already registered');
@@ -123,7 +129,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
-                    child: AppButton(label: 'Sign up', onPressed: _signUpUser),
+                    child: AppButton(label: 'Sign up', color: AppColors.brown, onPressed: _signUpUser),
                   ),
                   if (_formError.isNotEmpty)
                     Padding(
