@@ -6,18 +6,20 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 class AppButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
+  final Color? color;
 
   const AppButton({
     super.key,
     required this.label,
     required this.onPressed,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
       return ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.brown,
+          backgroundColor: color,
           foregroundColor: AppColors.latteFoam,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(

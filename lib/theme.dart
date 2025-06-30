@@ -8,6 +8,7 @@ class AppColors{
   static const caramel = Color(0xFFDCB893);       //edit entry box color
   static const sage = Color(0xFF7C8574);          //edit entry box color
   static const error = Color (0xFF972A2A);
+  static const darkCrml = Color(0xFF9F7453);
 
   //dark mode
   static const darkBackground = Color(0xFF2D241B);  // background

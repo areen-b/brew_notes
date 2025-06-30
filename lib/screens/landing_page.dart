@@ -75,6 +75,7 @@ class LandingPage extends StatelessWidget {
                     Expanded(
                       child: AppButton(
                         label: 'Log in',
+                        color: AppColors.brown,
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -87,7 +88,7 @@ class LandingPage extends StatelessWidget {
                     ),
                     SizedBox(width: screenWidth * 0.04),
                     Expanded(
-                      child: AppButton(label: 'Sign up', onPressed: () {
+                      child: AppButton(label: 'Sign up', color: AppColors.brown, onPressed: () {
                         Navigator.push(
                             context,
                             MaterialPageRoute(

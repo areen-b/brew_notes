@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
-
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,13 +12,27 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = -1;
+  String displayName = 'coffee friend';
+
+  @override
+  void initState() {
+    super.initState();
+    // Load user info after the build phase
+    Future.microtask(() {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && mounted) {
+        setState(() {
+          displayName = user.displayName ?? 'coffee friend';
+        });
+      }
+    });
+  }
 
   void _onNavTap(int index) {
     setState(() {
       _selectedIndex = index;
     });
 
-    // Navigate based on index
     switch (index) {
       case 0:
         Navigator.pushNamed(context, '/map');
@@ -44,21 +58,20 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // Top greeting + theme toggle
+              // Top greeting
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                     decoration: BoxDecoration(
                       color: AppColors.brown,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: RichText(
-                      text: const TextSpan(
+                      text: TextSpan(
                         text: 'Hello, ',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppColors.latteFoam,
                           fontSize: 20,
                           fontFamily: 'Playfair Display',
@@ -66,10 +79,10 @@ class _HomePageState extends State<HomePage> {
                         ),
                         children: [
                           TextSpan(
-                            text: 'coffeeloverxxx',
-                            style: TextStyle(fontStyle: FontStyle.italic),
+                            text: displayName,
+                            style: const TextStyle(fontStyle: FontStyle.italic),
                           ),
-                          TextSpan(text: ' !'),
+                          const TextSpan(text: ' !'),
                         ],
                       ),
                     ),
@@ -127,6 +140,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 30),
 
               // Mood card
@@ -150,7 +164,9 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
+
               const Spacer(),
+
               // Bottom Nav
               NavBar(
                 currentIndex: _selectedIndex,
