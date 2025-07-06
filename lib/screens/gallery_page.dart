@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'journal_entry.dart';
-
+import 'package:brew_notes/screens/image_viewer.dart';
 class GalleryPage extends StatefulWidget {
   const GalleryPage({super.key});
 
@@ -16,7 +16,6 @@ class GalleryPage extends StatefulWidget {
 class _GalleryPageState extends State<GalleryPage> {
   int _selectedIndex = 1;
 
-  // We'll use a map of DateTime to List<String> for correct sorting
   Map<DateTime, List<String>> _groupedByDate = {};
 
   @override
@@ -133,13 +132,23 @@ class _GalleryPageState extends State<GalleryPage> {
                           spacing: 12,
                           runSpacing: 12,
                           children: entry.value.map((imageUrl) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.network(
-                                imageUrl,
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ImageViewerPage(imageUrl: imageUrl),
+                                  ),
+                                );
+                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.network(
+                                  imageUrl,
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             );
                           }).toList(),

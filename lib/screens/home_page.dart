@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
 
@@ -13,26 +14,75 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = -1;
   String displayName = 'coffee friend';
+  int visitedCount = 0;
+  String selectedMood = '⭐ excited';
 
+  final List<String> moodOptions = [
+    '⭐ excited',
+    '😌 relaxed',
+    '☕ cozy',
+    '💤 sleepy',
+    '📚 focused',
+    '🎉 joyful',
+    '😞 tired',
+    '🌧️ gloomy',
+  ];
+
+  @override
   @override
   void initState() {
     super.initState();
-    // Load user info after the build phase
-    Future.microtask(() {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null && mounted) {
-        setState(() {
-          displayName = user.displayName ?? 'coffee friend';
-        });
-      }
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final uid = user.uid;
+
+    // Load display name
+    setState(() {
+      displayName = user.displayName ?? 'coffee friend';
     });
+
+    // Get visited count
+    final visitedSnapshot = await FirebaseFirestore.instance
+        .collection('map_markers_v2')
+        .where('userId', isEqualTo: uid)
+        .where('type', isEqualTo: 'visited')
+        .get();
+    if (mounted) {
+      setState(() {
+        visitedCount = visitedSnapshot.docs.length;
+      });
+    }
+
+    // Get stored mood
+    final moodDoc = await FirebaseFirestore.instance
+        .collection('user_moods')
+        .doc(uid)
+        .get();
+
+    if (mounted && moodDoc.exists && moodDoc.data()!.containsKey('mood')) {
+      setState(() {
+        selectedMood = moodDoc['mood'];
+      });
+    }
+  }
+
+
+  Future<void> _saveMood(String mood) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await FirebaseFirestore.instance
+        .collection('user_moods')
+        .doc(user.uid)
+        .set({'mood': mood});
   }
 
   void _onNavTap(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
+    setState(() => _selectedIndex = index);
     switch (index) {
       case 0:
         Navigator.pushNamed(context, '/map');
@@ -58,7 +108,7 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // Top greeting
+              // Greeting
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -90,6 +140,7 @@ class _HomePageState extends State<HomePage> {
                   const ThemeToggleButton(iconColor: AppColors.brown),
                 ],
               ),
+
               const SizedBox(height: 50),
 
               // Divider
@@ -100,7 +151,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 40),
 
-              // Quote card
+              // Quote
               HomeCard(
                 children: const [
                   Text(
@@ -118,19 +169,19 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 30),
 
-              // Places visited card
+              // Places Visited
               HomeCard(
-                children: const [
+                children: [
                   Text(
-                    '5',
-                    style: TextStyle(
+                    '$visitedCount',
+                    style: const TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Playfair Display',
                       color: AppColors.brown,
                     ),
                   ),
-                  Text(
+                  const Text(
                     'places visited',
                     style: TextStyle(
                       fontSize: 18,
@@ -143,10 +194,10 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 30),
 
-              // Mood card
+              // Mood Card with dropdown
               HomeCard(
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     "today’s mood",
                     style: TextStyle(
                       fontSize: 20,
@@ -154,13 +205,30 @@ class _HomePageState extends State<HomePage> {
                       color: AppColors.brown,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    '⭐ excited !',
-                    style: TextStyle(
-                      fontSize: 18,
+                  const SizedBox(height: 8),
+                  DropdownButton<String>(
+                    value: selectedMood,
+                    icon: const Icon(Icons.arrow_drop_down, color: AppColors.brown),
+                    dropdownColor: AppColors.latteFoam,
+                    borderRadius: BorderRadius.circular(16),
+                    style: const TextStyle(
                       color: AppColors.brown,
+                      fontSize: 18,
+                      fontFamily: 'Playfair Display',
                     ),
+                    underline: const SizedBox(),
+                    items: moodOptions.map((mood) {
+                      return DropdownMenuItem<String>(
+                        value: mood,
+                        child: Text(mood),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => selectedMood = value);
+                        _saveMood(value);
+                      }
+                    },
                   ),
                 ],
               ),

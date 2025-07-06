@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -18,20 +20,33 @@ class _ProfilePageState extends State<ProfilePage> {
   String displayName = 'coffee friend';
   String userEmail = '';
   int _selectedIndex = 3;
-  File? _profileImage;
+  String? _profileImageUrl;
 
   @override
   void initState() {
     super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
     setState(() {
-      displayName = user?.displayName ?? 'coffee friend';
-      userEmail = user?.email ?? '';
+      displayName = user.displayName ?? 'coffee friend';
+      userEmail = user.email ?? '';
     });
+
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    if (doc.exists && doc.data()?['profileImageUrl'] != null) {
+      setState(() {
+        _profileImageUrl = doc['profileImageUrl'];
+      });
+    }
   }
 
   void _onNavTap(int index) {
-    setState(() => _selectedIndex = index);
+    if (_selectedIndex == index) return;
     switch (index) {
       case 0:
         Navigator.pushReplacementNamed(context, '/map');
@@ -42,86 +57,77 @@ class _ProfilePageState extends State<ProfilePage> {
       case 2:
         Navigator.pushReplacementNamed(context, '/journal');
         break;
-      case 3:
-        break;
     }
   }
 
   Future<void> _pickProfileImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) {
-      setState(() {
-        _profileImage = File(picked.path);
-      });
+      final file = File(picked.path);
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
+
+      try {
+        final ref = FirebaseStorage.instance.ref().child('profile_pictures/$uid.jpg');
+        await ref.putFile(file);
+        final url = await ref.getDownloadURL();
+
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'profileImageUrl': url,
+        }, SetOptions(merge: true));
+
+        setState(() => _profileImageUrl = url);
+      } catch (e) {
+        _showConfirmationDialog("Upload Failed", "❌ Failed to upload profile image.");
+      }
     }
   }
 
   void _showConfirmationDialog(String title, String message) {
-    _showBlurDialog(
-      AlertDialog(
-        backgroundColor: AppColors.latteFoam,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: AppColors.brown,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Playfair Display',
-          ),
-        ),
-        content: Text(
-          message,
-          style: const TextStyle(
-            color: AppColors.brown,
-            fontFamily: 'Playfair Display',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "OK",
-              style: TextStyle(
-                color: AppColors.sage,
-                fontWeight: FontWeight.w600,
-              ),
+    showDialog(
+      context: context,
+      builder: (_) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: AlertDialog(
+          backgroundColor: AppColors.latteFoam,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(title,
+              style: const TextStyle(
+                  fontFamily: 'Playfair Display',
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.brown)),
+          content: Text(message,
+              style: const TextStyle(color: AppColors.brown, fontFamily: 'Playfair Display')),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK", style: TextStyle(color: AppColors.sage)),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   void _editUsername() {
-    final newUsernameController = TextEditingController();
+    final controller = TextEditingController();
     _showBlurDialog(
       AlertDialog(
         backgroundColor: AppColors.latteFoam,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          "Edit Username",
-          style: TextStyle(
-            color: AppColors.brown,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Playfair Display',
-          ),
-        ),
+        title: const Text("Edit Username",
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontFamily: 'Playfair Display', color: AppColors.brown)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              "Current: $displayName",
-              style: const TextStyle(color: AppColors.brown),
-            ),
+            Text("Current: $displayName", style: const TextStyle(color: AppColors.brown)),
             const SizedBox(height: 10),
             TextField(
-              controller: newUsernameController,
+              controller: controller,
               decoration: const InputDecoration(
                 labelText: "New Username",
                 labelStyle: TextStyle(color: AppColors.brown),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.brown),
-                ),
               ),
               style: const TextStyle(color: AppColors.brown),
             ),
@@ -133,20 +139,16 @@ class _ProfilePageState extends State<ProfilePage> {
             child: const Text("Cancel", style: TextStyle(color: AppColors.sage)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.sage,
-            ),
             onPressed: () async {
-              final newName = newUsernameController.text.trim();
+              final newName = controller.text.trim();
               if (newName.isNotEmpty) {
                 await FirebaseAuth.instance.currentUser?.updateDisplayName(newName);
-                if (context.mounted) {
-                  setState(() => displayName = newName);
-                  Navigator.pop(context);
-                  _showConfirmationDialog("Username Updated", "Your username has been changed.");
-                }
+                setState(() => displayName = newName);
+                Navigator.pop(context);
+                _showConfirmationDialog("Username Updated", "Your username has been changed.");
               }
             },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.sage),
             child: const Text("Confirm", style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -157,46 +159,26 @@ class _ProfilePageState extends State<ProfilePage> {
   void _editPassword() {
     final currentPasswordController = TextEditingController();
     final newPasswordController = TextEditingController();
-
     _showBlurDialog(
       AlertDialog(
         backgroundColor: AppColors.latteFoam,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          "Change Password",
-          style: TextStyle(
-            color: AppColors.brown,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Playfair Display',
-          ),
-        ),
+        title: const Text("Change Password",
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontFamily: 'Playfair Display', color: AppColors.brown)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: currentPasswordController,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Current Password",
-                labelStyle: TextStyle(color: AppColors.brown),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.brown),
-                ),
-              ),
-              style: const TextStyle(color: AppColors.brown),
+              decoration: const InputDecoration(labelText: "Current Password"),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: newPasswordController,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "New Password",
-                labelStyle: TextStyle(color: AppColors.brown),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.brown),
-                ),
-              ),
-              style: const TextStyle(color: AppColors.brown),
+              decoration: const InputDecoration(labelText: "New Password"),
             ),
           ],
         ),
@@ -206,34 +188,28 @@ class _ProfilePageState extends State<ProfilePage> {
             child: const Text("Cancel", style: TextStyle(color: AppColors.sage)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.sage),
             onPressed: () async {
-              final currentPassword = currentPasswordController.text.trim();
-              final newPassword = newPasswordController.text.trim();
               final user = FirebaseAuth.instance.currentUser;
+              final currentPw = currentPasswordController.text.trim();
+              final newPw = newPasswordController.text.trim();
 
-              if (user != null &&
-                  currentPassword.isNotEmpty &&
-                  newPassword.isNotEmpty &&
-                  newPassword.length >= 6) {
-                final cred = EmailAuthProvider.credential(
-                  email: user.email!,
-                  password: currentPassword,
-                );
-
+              if (user != null && currentPw.isNotEmpty && newPw.length >= 6) {
                 try {
+                  final cred = EmailAuthProvider.credential(
+                    email: user.email!,
+                    password: currentPw,
+                  );
                   await user.reauthenticateWithCredential(cred);
-                  await user.updatePassword(newPassword);
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    _showConfirmationDialog("Password Updated", "Your password has been successfully changed.");
-                  }
-                } catch (e) {
+                  await user.updatePassword(newPw);
                   Navigator.pop(context);
-                  _showConfirmationDialog("Error", "Password update failed. Please check your current password.");
+                  _showConfirmationDialog("Password Updated", "Password successfully changed.");
+                } catch (_) {
+                  Navigator.pop(context);
+                  _showConfirmationDialog("Error", "Could not change password. Try again.");
                 }
               }
             },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.sage),
             child: const Text("Confirm", style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -245,7 +221,7 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       barrierColor: Colors.black.withOpacity(0.4),
-      builder: (context) => BackdropFilter(
+      builder: (_) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: child,
       ),
@@ -263,23 +239,14 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'my profile',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Playfair Display',
-                      color: AppColors.brown,
-                    ),
-                  ),
-                  Row(
-                    children: const [
-                      HomeButton(),
-                      SizedBox(width: 8),
-                      ThemeToggleButton(iconColor: AppColors.brown),
-                    ],
-                  ),
+                children: const [
+                  Text('my profile',
+                      style: TextStyle(
+                          fontSize: 26,
+                          fontFamily: 'Playfair Display',
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.brown)),
+                  Row(children: [HomeButton(), SizedBox(width: 8), ThemeToggleButton(iconColor: AppColors.brown)])
                 ],
               ),
               const SizedBox(height: 24),
@@ -288,19 +255,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(30),
-                    child: _profileImage != null
-                        ? Image.file(
-                      _profileImage!,
-                      height: 240,
-                      width: 230,
-                      fit: BoxFit.cover,
-                    )
-                        : Image.asset(
-                      'assets/images/coffee.jpg',
-                      height: 240,
-                      width: 230,
-                      fit: BoxFit.cover,
-                    ),
+                    child: _profileImageUrl != null
+                        ? Image.network(_profileImageUrl!,
+                        height: 240, width: 230, fit: BoxFit.cover)
+                        : Image.asset('assets/images/coffee.jpg',
+                        height: 240, width: 230, fit: BoxFit.cover),
                   ),
                   Positioned(
                     bottom: 10,
@@ -320,23 +279,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
               const SizedBox(height: 40),
-              ProfileInfoTile(
-                label: 'email',
-                value: userEmail,
-                editable: false,
-              ),
-              ProfileInfoTile(
-                label: 'username',
-                value: displayName,
-                editable: true,
-                onEdit: _editUsername,
-              ),
-              ProfileInfoTile(
-                label: 'password',
-                value: '**********',
-                editable: true,
-                onEdit: _editPassword,
-              ),
+              ProfileInfoTile(label: 'email', value: userEmail, editable: false),
+              ProfileInfoTile(label: 'username', value: displayName, editable: true, onEdit: _editUsername),
+              ProfileInfoTile(label: 'password', value: '**********', editable: true, onEdit: _editPassword),
               const SizedBox(height: 30),
               SizedBox(
                 width: double.infinity,
@@ -344,24 +289,15 @@ class _ProfilePageState extends State<ProfilePage> {
                   label: 'Log out',
                   color: AppColors.darkCrml,
                   onPressed: () async {
-                    try {
-                      await FirebaseAuth.instance.signOut();
-                      if (context.mounted) {
-                        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-                      }
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Logout failed. Please try again.')),
-                      );
+                    await FirebaseAuth.instance.signOut();
+                    if (context.mounted) {
+                      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
                     }
                   },
                 ),
               ),
               const Spacer(),
-              NavBar(
-                currentIndex: _selectedIndex,
-                onTap: _onNavTap,
-              ),
+              NavBar(currentIndex: _selectedIndex, onTap: _onNavTap),
             ],
           ),
         ),
@@ -393,34 +329,21 @@ class ProfileInfoTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.brown,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(color: Colors.brown, blurRadius: 6, offset: Offset(2, 3)),
-        ],
+        boxShadow: const [BoxShadow(color: Colors.brown, blurRadius: 6, offset: Offset(2, 3))],
       ),
       child: Row(
         children: [
-          Text(
-            '$label: ',
-            style: const TextStyle(
-              color: AppColors.latteFoam,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text('$label: ',
+              style: const TextStyle(color: AppColors.latteFoam, fontWeight: FontWeight.bold)),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                color: AppColors.latteFoam,
-                fontStyle: FontStyle.italic,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Text(value,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: AppColors.latteFoam, fontStyle: FontStyle.italic)),
           ),
           if (editable)
             IconButton(
               icon: const Icon(Icons.edit, color: AppColors.sage),
               onPressed: onEdit,
-              tooltip: 'Edit $label',
             ),
         ],
       ),

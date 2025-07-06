@@ -32,7 +32,7 @@ class _JournalPageState extends State<JournalPage> {
     final snapshot = await FirebaseFirestore.instance
         .collection('journal_entries')
         .where('userId', isEqualTo: uid)
-        .get(); // no .orderBy here!
+        .get();
 
     final List<JournalEntryData> loaded = [];
 
@@ -68,7 +68,7 @@ class _JournalPageState extends State<JournalPage> {
       MaterialPageRoute(builder: (context) => const EntryPage()),
     );
     if (newEntry is JournalEntryData) {
-      _loadEntries(); // Refresh from Firestore
+      _loadEntries();
     }
   }
 
@@ -78,13 +78,48 @@ class _JournalPageState extends State<JournalPage> {
       MaterialPageRoute(builder: (context) => EntryPage(initialEntry: entry)),
     );
     if (updatedEntry is JournalEntryData) {
-      _loadEntries(); // Refresh from Firestore
+      _loadEntries();
     }
   }
 
   Future<void> _deleteEntry(JournalEntryData entry) async {
-    await FirebaseFirestore.instance.collection('journal_entries').doc(entry.id).delete();
-    _loadEntries(); // Refresh from Firestore
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.latteFoam,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Delete Entry?',
+          style: TextStyle(
+            color: AppColors.brown,
+            fontFamily: 'Playfair Display',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: const Text(
+          'Are you sure you want to delete this entry? This cannot be undone.',
+          style: TextStyle(color: AppColors.brown),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.brown)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await FirebaseFirestore.instance
+          .collection('journal_entries')
+          .doc(entry.id)
+          .delete();
+      _loadEntries(); // Refresh after deletion
+    }
   }
 
   @override
@@ -188,7 +223,7 @@ class _JournalPageState extends State<JournalPage> {
                                           ),
                                           child: SingleChildScrollView(
                                             child: Text(entry.address,
-                                                style: const TextStyle(color: AppColors.latteFoam)),
+                                                style: const TextStyle(color: AppColors.brown)),
                                           ),
                                         ),
                                       ),
