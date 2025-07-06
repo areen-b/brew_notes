@@ -32,12 +32,17 @@ class _JournalPageState extends State<JournalPage> {
     final snapshot = await FirebaseFirestore.instance
         .collection('journal_entries')
         .where('userId', isEqualTo: uid)
-        .orderBy('timestamp', descending: true)
-        .get();
+        .get(); // no .orderBy here!
 
-    final List<JournalEntryData> loaded = snapshot.docs
-        .map((doc) => JournalEntryData.fromJson(doc.data(), doc.id))
-        .toList();
+    final List<JournalEntryData> loaded = [];
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      if (data.containsKey('timestamp')) {
+        await doc.reference.update({'timestamp': FieldValue.delete()});
+      }
+      loaded.add(JournalEntryData.fromJson(data, doc.id));
+    }
 
     setState(() => _entries = loaded);
   }
@@ -219,8 +224,7 @@ class _JournalPageState extends State<JournalPage> {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: entry.notes
-                                            .map((note) => Text('• \$note',
-                                            style: const TextStyle(color: AppColors.latteFoam)))
+                                            .map((note) => Text('• $note', style: const TextStyle(color: AppColors.latteFoam)))
                                             .toList(),
                                       ),
                                     ),

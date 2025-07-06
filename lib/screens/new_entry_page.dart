@@ -1,4 +1,3 @@
-// new_entry_page.dart (Firebase-integrated)
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,11 +22,9 @@ class _EntryPageState extends State<EntryPage> {
   int _rating = 0;
   bool _isFormComplete = false;
 
-
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-
 
   final List<String> _months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -40,24 +37,23 @@ class _EntryPageState extends State<EntryPage> {
   int? _selectedDay;
   int? _selectedYear;
   File? _selectedImage;
+  String? _existingImageUrl;
 
   @override
   void initState() {
     super.initState();
 
-    // Add listeners
     _titleController.addListener(_checkFormComplete);
     _addressController.addListener(_checkFormComplete);
     _notesController.addListener(_checkFormComplete);
 
-    // Pre-fill if editing
     if (widget.initialEntry != null) {
       final entry = widget.initialEntry!;
       _titleController.text = entry.title;
       _addressController.text = entry.address;
       _notesController.text = entry.notes.join('\n');
       _rating = entry.rating.toInt();
-      _selectedImage = null; // Don't load network image here
+      _existingImageUrl = entry.imageUrl;
       final parts = entry.date.split(' ');
       if (parts.length >= 3) {
         _selectedMonth = parts[0];
@@ -72,7 +68,7 @@ class _EntryPageState extends State<EntryPage> {
     final hasTitle = _titleController.text.trim().isNotEmpty;
     final hasAddress = _addressController.text.trim().isNotEmpty;
     final hasNotes = _notesController.text.trim().isNotEmpty;
-    final hasImage = _selectedImage != null;
+    final hasImage = _selectedImage != null || _existingImageUrl != null;
 
     setState(() {
       _isFormComplete = hasDate && hasTitle && hasAddress && hasNotes && hasImage;
@@ -85,8 +81,55 @@ class _EntryPageState extends State<EntryPage> {
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
+        _existingImageUrl = null; // Clear old image if new one selected
         _checkFormComplete();
       });
+    }
+  }
+
+  Future<void> _submitEntry() async {
+    final date = '$_selectedMonth $_selectedDay, $_selectedYear';
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You must be logged in.")),
+      );
+      return;
+    }
+
+    try {
+      String imageUrl = _existingImageUrl ?? '';
+
+      // Upload new image if picked
+      if (_selectedImage != null) {
+        final fileName = const Uuid().v4();
+        final ref = FirebaseStorage.instance.ref().child('journal_images/$fileName.jpg');
+        await ref.putFile(_selectedImage!);
+        imageUrl = await ref.getDownloadURL();
+      }
+
+      final data = JournalEntryData(
+        id: widget.initialEntry?.id ?? FirebaseFirestore.instance.collection('journal_entries').doc().id,
+        title: _titleController.text.trim(),
+        address: _addressController.text.trim(),
+        notes: _notesController.text.trim().split('\n').where((line) => line.isNotEmpty).toList(),
+        rating: _rating.toDouble(),
+        date: date,
+        imageUrl: imageUrl,
+        userId: uid,
+      );
+
+      final docRef = FirebaseFirestore.instance.collection('journal_entries').doc(data.id);
+      await docRef.set(data.toJson());
+
+      final docSnapshot = await docRef.get();
+      final savedEntry = JournalEntryData.fromJson(docSnapshot.data()!, docSnapshot.id);
+      Navigator.pop(context, savedEntry);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
     }
   }
 
@@ -105,43 +148,19 @@ class _EntryPageState extends State<EntryPage> {
     }
   }
 
-  Future<void> _submitEntry() async {
-    final date = '$_selectedMonth $_selectedDay, $_selectedYear';
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-
-    if (uid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("You must be logged in.")),
+  Widget _buildImagePreview() {
+    if (_selectedImage != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.file(_selectedImage!, height: 300, width: double.infinity, fit: BoxFit.cover),
       );
-      return;
-    }
-
-    try {
-      // Upload image to Firebase Storage
-      final fileName = const Uuid().v4();
-      final ref = FirebaseStorage.instance.ref().child('journal_images/$fileName.jpg');
-      await ref.putFile(_selectedImage!);
-      final imageUrl = await ref.getDownloadURL();
-
-      // Save entry to Firestore
-      final docRef = FirebaseFirestore.instance.collection('journal_entries').doc();
-      final newEntry = JournalEntryData(
-        id: docRef.id,
-        title: _titleController.text.trim(),
-        address: _addressController.text.trim(),
-        notes: _notesController.text.trim().split('\n').where((line) => line.isNotEmpty).toList(),
-        rating: _rating.toDouble(),
-        date: date,
-        imageUrl: imageUrl,
-        userId: uid,
+    } else if (_existingImageUrl != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.network(_existingImageUrl!, height: 300, width: double.infinity, fit: BoxFit.cover),
       );
-      await docRef.set(newEntry.toJson());
-
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+    } else {
+      return const Text('tap to upload a picture', style: TextStyle(color: AppColors.latteFoam));
     }
   }
 
@@ -257,12 +276,7 @@ class _EntryPageState extends State<EntryPage> {
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(2, 4))],
                             ),
-                            child: _selectedImage == null
-                                ? const Text('tap to upload a picture', style: TextStyle(color: AppColors.latteFoam))
-                                : ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.file(_selectedImage!, height: 300, width: double.infinity, fit: BoxFit.cover),
-                            ),
+                            child: _buildImagePreview(),
                           ),
                         ),
                         const SizedBox(height: 20),
