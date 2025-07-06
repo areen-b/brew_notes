@@ -1,8 +1,12 @@
+
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'journal_entry.dart';
 import 'new_entry_page.dart';
+import 'dart:io';
 
 class JournalPage extends StatefulWidget {
   const JournalPage({super.key});
@@ -12,17 +16,34 @@ class JournalPage extends StatefulWidget {
 }
 
 class _JournalPageState extends State<JournalPage> {
-  List<JournalEntry> entries = [];
   int _selectedIndex = 2;
+  List<JournalEntryData> _entries = [];
 
-  final List<String> _monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadEntries();
+  }
+
+  Future<void> _loadEntries() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('journal_entries')
+        .where('userId', isEqualTo: uid)
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    final List<JournalEntryData> loaded = snapshot.docs
+        .map((doc) => JournalEntryData.fromJson(doc.data(), doc.id))
+        .toList();
+
+    setState(() => _entries = loaded);
+  }
 
   void _onNavTap(int index) {
     if (_selectedIndex == index) return;
-    setState(() => _selectedIndex = index);
     switch (index) {
       case 0:
         Navigator.pushReplacementNamed(context, '/map');
@@ -36,52 +57,29 @@ class _JournalPageState extends State<JournalPage> {
     }
   }
 
-  DateTime _parseDate(String date) {
-    final parts = date.replaceAll(',', '').split(' ');
-    if (parts.length == 3) {
-      final month = parts[0];
-      final day = int.tryParse(parts[1]) ?? 1;
-      final year = int.tryParse(parts[2]) ?? 2000;
-      final monthIndex = _monthNames.indexOf(month) + 1;
-      return DateTime(year, monthIndex, day);
-    }
-    return DateTime(2000);
-  }
-
-  void _addNewEntry(JournalEntry entry) {
-    setState(() {
-      entries.add(entry);
-      entries.sort((a, b) => _parseDate(b.date).compareTo(_parseDate(a.date)));
-    });
-  }
-
-  void _deleteEntry(int index) {
-    setState(() {
-      entries.removeAt(index);
-    });
-  }
-
   void _navigateToAddPage() async {
     final newEntry = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const EntryPage()),
     );
-    if (newEntry is JournalEntry) {
-      _addNewEntry(newEntry);
+    if (newEntry is JournalEntryData) {
+      _loadEntries(); // Refresh from Firestore
     }
   }
 
-  void _navigateToEditPage(int index) async {
+  void _navigateToEditPage(JournalEntryData entry) async {
     final updatedEntry = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => EntryPage(initialEntry: entries[index])),
+      MaterialPageRoute(builder: (context) => EntryPage(initialEntry: entry)),
     );
-    if (updatedEntry is JournalEntry) {
-      setState(() {
-        entries[index] = updatedEntry;
-        entries.sort((a, b) => _parseDate(b.date).compareTo(_parseDate(a.date)));
-      });
+    if (updatedEntry is JournalEntryData) {
+      _loadEntries(); // Refresh from Firestore
     }
+  }
+
+  Future<void> _deleteEntry(JournalEntryData entry) async {
+    await FirebaseFirestore.instance.collection('journal_entries').doc(entry.id).delete();
+    _loadEntries(); // Refresh from Firestore
   }
 
   @override
@@ -94,7 +92,6 @@ class _JournalPageState extends State<JournalPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -119,10 +116,8 @@ class _JournalPageState extends State<JournalPage> {
               const SizedBox(height: 8),
               const Text('your saved moments ☕️', style: TextStyle(fontSize: 18, color: AppColors.brown)),
               const SizedBox(height: 20),
-
-              // Entry list or empty state
               Expanded(
-                child: entries.isEmpty
+                child: _entries.isEmpty
                     ? const Center(
                   child: Text(
                     "no entries yet.\ntap below to add one!",
@@ -132,10 +127,10 @@ class _JournalPageState extends State<JournalPage> {
                 )
                     : ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: entries.length,
+                  itemCount: _entries.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 16),
                   itemBuilder: (context, index) {
-                    final entry = entries[index];
+                    final entry = _entries[index];
                     return Container(
                       width: MediaQuery.of(context).size.width * 0.85,
                       height: 520,
@@ -174,7 +169,6 @@ class _JournalPageState extends State<JournalPage> {
                             child: SingleChildScrollView(
                               physics: const BouncingScrollPhysics(),
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Row(
                                     children: [
@@ -195,19 +189,17 @@ class _JournalPageState extends State<JournalPage> {
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
-                                        child: ConstrainedBox(
-                                          constraints: const BoxConstraints.tightFor(height: 100),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.caramel,
-                                              borderRadius: BorderRadius.circular(12),
-                                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
-                                            ),
-                                            child: StarRating(
-                                              rating: entry.rating.toInt(),
-                                              onRatingChanged: (_) {},
-                                            ),
+                                        child: Container(
+                                          height: 100,
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.caramel,
+                                            borderRadius: BorderRadius.circular(12),
+                                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+                                          ),
+                                          child: StarRating(
+                                            rating: entry.rating.toInt(),
+                                            onRatingChanged: (_) {},
                                           ),
                                         ),
                                       ),
@@ -227,22 +219,23 @@ class _JournalPageState extends State<JournalPage> {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: entry.notes
-                                            .map((note) => Text('• $note',
+                                            .map((note) => Text('• \$note',
                                             style: const TextStyle(color: AppColors.latteFoam)))
                                             .toList(),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(height: 12),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.file(
-                                      entry.imageFile!,
-                                      height: 200,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
+                                  if (entry.imageUrl.isNotEmpty)
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        entry.imageUrl,
+                                        height: 200,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
@@ -252,11 +245,11 @@ class _JournalPageState extends State<JournalPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               EditButton(
-                                onPressed: () => _navigateToEditPage(index),
+                                onPressed: () => _navigateToEditPage(entry),
                               ),
                               const SizedBox(width: 12),
                               ElevatedButton.icon(
-                                onPressed: () => _deleteEntry(index),
+                                onPressed: () => _deleteEntry(entry),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.error,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

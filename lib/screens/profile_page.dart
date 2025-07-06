@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -16,6 +18,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String displayName = 'coffee friend';
   String userEmail = '';
   int _selectedIndex = 3;
+  File? _profileImage;
 
   @override
   void initState() {
@@ -41,6 +44,15 @@ class _ProfilePageState extends State<ProfilePage> {
         break;
       case 3:
         break;
+    }
+  }
+
+  Future<void> _pickProfileImage() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _profileImage = File(picked.path);
+      });
     }
   }
 
@@ -271,14 +283,41 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
               const SizedBox(height: 24),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Image.asset(
-                  'assets/images/coffee.jpg',
-                  height: 240,
-                  width: 230,
-                  fit: BoxFit.cover,
-                ),
+              Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: _profileImage != null
+                        ? Image.file(
+                      _profileImage!,
+                      height: 240,
+                      width: 230,
+                      fit: BoxFit.cover,
+                    )
+                        : Image.asset(
+                      'assets/images/coffee.jpg',
+                      height: 240,
+                      width: 230,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 10,
+                    right: 10,
+                    child: GestureDetector(
+                      onTap: _pickProfileImage,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.sage,
+                        ),
+                        padding: const EdgeInsets.all(8),
+                        child: const Icon(Icons.edit, size: 20, color: AppColors.latteFoam),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 40),
               ProfileInfoTile(
@@ -348,8 +387,9 @@ class ProfileInfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: 70,
       margin: const EdgeInsets.only(bottom: 18),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: AppColors.brown,
         borderRadius: BorderRadius.circular(16),
@@ -361,12 +401,18 @@ class ProfileInfoTile extends StatelessWidget {
         children: [
           Text(
             '$label: ',
-            style: const TextStyle(color: AppColors.latteFoam, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: AppColors.latteFoam,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(color: AppColors.latteFoam, fontStyle: FontStyle.italic),
+              style: const TextStyle(
+                color: AppColors.latteFoam,
+                fontStyle: FontStyle.italic,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),

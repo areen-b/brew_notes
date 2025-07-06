@@ -1,13 +1,17 @@
+// new_entry_page.dart (Firebase-integrated)
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:uuid/uuid.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
 import 'journal_entry.dart';
-import 'package:brew_notes/global.dart';
 
 class EntryPage extends StatefulWidget {
-  final JournalEntry? initialEntry;
+  final JournalEntryData? initialEntry;
   const EntryPage({super.key, this.initialEntry});
 
   @override
@@ -19,9 +23,11 @@ class _EntryPageState extends State<EntryPage> {
   int _rating = 0;
   bool _isFormComplete = false;
 
+
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+
 
   final List<String> _months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -38,25 +44,27 @@ class _EntryPageState extends State<EntryPage> {
   @override
   void initState() {
     super.initState();
+
+    // Add listeners
+    _titleController.addListener(_checkFormComplete);
+    _addressController.addListener(_checkFormComplete);
+    _notesController.addListener(_checkFormComplete);
+
+    // Pre-fill if editing
     if (widget.initialEntry != null) {
       final entry = widget.initialEntry!;
       _titleController.text = entry.title;
       _addressController.text = entry.address;
       _notesController.text = entry.notes.join('\n');
       _rating = entry.rating.toInt();
-      _selectedImage = entry.imageFile;
-
+      _selectedImage = null; // Don't load network image here
       final parts = entry.date.split(' ');
-      if (parts.length == 3) {
+      if (parts.length >= 3) {
         _selectedMonth = parts[0];
         _selectedDay = int.tryParse(parts[1].replaceAll(',', ''));
         _selectedYear = int.tryParse(parts[2]);
       }
     }
-
-    _titleController.addListener(_checkFormComplete);
-    _addressController.addListener(_checkFormComplete);
-    _notesController.addListener(_checkFormComplete);
   }
 
   void _checkFormComplete() {
@@ -97,12 +105,44 @@ class _EntryPageState extends State<EntryPage> {
     }
   }
 
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _addressController.dispose();
-    _notesController.dispose();
-    super.dispose();
+  Future<void> _submitEntry() async {
+    final date = '$_selectedMonth $_selectedDay, $_selectedYear';
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You must be logged in.")),
+      );
+      return;
+    }
+
+    try {
+      // Upload image to Firebase Storage
+      final fileName = const Uuid().v4();
+      final ref = FirebaseStorage.instance.ref().child('journal_images/$fileName.jpg');
+      await ref.putFile(_selectedImage!);
+      final imageUrl = await ref.getDownloadURL();
+
+      // Save entry to Firestore
+      final docRef = FirebaseFirestore.instance.collection('journal_entries').doc();
+      final newEntry = JournalEntryData(
+        id: docRef.id,
+        title: _titleController.text.trim(),
+        address: _addressController.text.trim(),
+        notes: _notesController.text.trim().split('\n').where((line) => line.isNotEmpty).toList(),
+        rating: _rating.toDouble(),
+        date: date,
+        imageUrl: imageUrl,
+        userId: uid,
+      );
+      await docRef.set(newEntry.toJson());
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
   }
 
   @override
@@ -114,7 +154,6 @@ class _EntryPageState extends State<EntryPage> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // Top Bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -132,34 +171,21 @@ class _EntryPageState extends State<EntryPage> {
                 ],
               ),
               const SizedBox(height: 20),
-
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text('add a new entry', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.brown)),
               ),
               const SizedBox(height: 12),
-
-              // Date Dropdowns
               Row(
                 children: [
-                  _buildDropdown<String>(label: 'month', value: _selectedMonth, items: _months, onChanged: (val) {
-                    setState(() => _selectedMonth = val);
-                    _checkFormComplete();
-                  }),
+                  _buildDropdown(label: 'month', value: _selectedMonth, items: _months, onChanged: (val) => setState(() { _selectedMonth = val; _checkFormComplete(); })),
                   const SizedBox(width: 8),
-                  _buildDropdown<int>(label: 'day', value: _selectedDay, items: _days, onChanged: (val) {
-                    setState(() => _selectedDay = val);
-                    _checkFormComplete();
-                  }),
+                  _buildDropdown(label: 'day', value: _selectedDay, items: _days, onChanged: (val) => setState(() { _selectedDay = val; _checkFormComplete(); })),
                   const SizedBox(width: 8),
-                  _buildDropdown<int>(label: 'year', value: _selectedYear, items: _years, onChanged: (val) {
-                    setState(() => _selectedYear = val);
-                    _checkFormComplete();
-                  }),
+                  _buildDropdown(label: 'year', value: _selectedYear, items: _years, onChanged: (val) => setState(() { _selectedYear = val; _checkFormComplete(); })),
                 ],
               ),
               const SizedBox(height: 20),
-
               Expanded(
                 child: SingleChildScrollView(
                   child: Container(
@@ -175,31 +201,7 @@ class _EntryPageState extends State<EntryPage> {
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            Expanded(
-                              child: Container(
-                                height: 80,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.caramel,
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
-                                ),
-                                child: TextField(
-                                  controller: _addressController,
-                                  expands: true,
-                                  maxLines: null,
-                                  style: const TextStyle(color: AppColors.brown),
-                                  decoration: const InputDecoration(
-                                    hintText: 'address',
-                                    hintStyle: TextStyle(color: AppColors.brown),
-                                    contentPadding: EdgeInsets.all(0),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16)), borderSide: BorderSide.none),
-                                    filled: true,
-                                    fillColor: Colors.transparent,
-                                  ),
-                                ),
-                              ),
-                            ),
+                            Expanded(child: _buildTextField(_addressController, 'address', fill: AppColors.caramel, hintColor: AppColors.brown)),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Container(
@@ -222,27 +224,25 @@ class _EntryPageState extends State<EntryPage> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        SizedBox(
+                        Container(
                           height: 120,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.sage.withOpacity(0.75),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
-                            ),
-                            child: TextField(
-                              controller: _notesController,
-                              style: const TextStyle(color: AppColors.latteFoam),
-                              expands: true,
-                              maxLines: null,
-                              decoration: const InputDecoration(
-                                hintText: 'describe your visit/thoughts',
-                                hintStyle: TextStyle(color: AppColors.latteFoam),
-                                contentPadding: EdgeInsets.all(12),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16)), borderSide: BorderSide.none),
-                                filled: true,
-                                fillColor: Colors.transparent,
-                              ),
+                          decoration: BoxDecoration(
+                            color: AppColors.sage.withOpacity(0.75),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+                          ),
+                          child: TextField(
+                            controller: _notesController,
+                            style: const TextStyle(color: AppColors.latteFoam),
+                            expands: true,
+                            maxLines: null,
+                            decoration: const InputDecoration(
+                              hintText: 'describe your visit/thoughts',
+                              hintStyle: TextStyle(color: AppColors.latteFoam),
+                              contentPadding: EdgeInsets.all(12),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(16)), borderSide: BorderSide.none),
+                              filled: true,
+                              fillColor: Colors.transparent,
                             ),
                           ),
                         ),
@@ -268,26 +268,7 @@ class _EntryPageState extends State<EntryPage> {
                         const SizedBox(height: 20),
                         Center(
                           child: ElevatedButton(
-                            onPressed: _isFormComplete
-                                ? () {
-                              final date = '$_selectedMonth $_selectedDay, $_selectedYear';
-                              if (_selectedImage != null && !galleryImages.contains(_selectedImage)) {
-                                galleryImages.add(_selectedImage!);
-                              }
-
-                              final entry = JournalEntry(
-                                title: _titleController.text.trim(),
-                                address: _addressController.text.trim(),
-                                rating: _rating.toDouble(),
-                                notes: _notesController.text.trim().split('\n').where((line) => line.isNotEmpty).toList(),
-                                date: date,
-                                imageFile: _selectedImage,
-                              );
-                              journalEntries.add(entry);
-
-                              Navigator.pop(context, entry);
-                            }
-                                : null,
+                            onPressed: _isFormComplete ? _submitEntry : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.brown,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -310,12 +291,7 @@ class _EntryPageState extends State<EntryPage> {
     );
   }
 
-  Widget _buildDropdown<T>({
-    required String label,
-    required T? value,
-    required List<T> items,
-    required ValueChanged<T?> onChanged,
-  }) {
+  Widget _buildDropdown<T>({required String label, required T? value, required List<T> items, required ValueChanged<T?> onChanged}) {
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
@@ -341,8 +317,7 @@ class _EntryPageState extends State<EntryPage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint,
-      {Color fill = AppColors.primary, Color hintColor = AppColors.latteFoam}) {
+  Widget _buildTextField(TextEditingController controller, String hint, {Color fill = AppColors.primary, Color hintColor = AppColors.latteFoam}) {
     return TextField(
       controller: controller,
       style: TextStyle(color: hintColor),
@@ -355,5 +330,13 @@ class _EntryPageState extends State<EntryPage> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _addressController.dispose();
+    _notesController.dispose();
+    super.dispose();
   }
 }

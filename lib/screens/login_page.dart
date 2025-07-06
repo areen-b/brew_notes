@@ -1,5 +1,6 @@
 import 'package:brew_notes/screens/forgot_password_page.dart';
 import 'package:brew_notes/screens/home_page.dart';
+import 'package:brew_notes/screens/profile_page.dart';
 import 'package:brew_notes/screens/signup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
@@ -24,7 +25,7 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProfilePage()));
     } catch (e) {
       setState(() => _error = "incorrect email or password");
     }

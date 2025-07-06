@@ -1,9 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
-import 'package:brew_notes/global.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'journal_entry.dart'; // make sure this is imported
 
 class GalleryPage extends StatefulWidget {
   const GalleryPage({super.key});
@@ -14,6 +15,13 @@ class GalleryPage extends StatefulWidget {
 
 class _GalleryPageState extends State<GalleryPage> {
   int _selectedIndex = 1;
+  Map<String, List<String>> _groupedImageUrls = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImages();
+  }
 
   void _onNavTap(int index) {
     if (index == _selectedIndex) return;
@@ -30,23 +38,35 @@ class _GalleryPageState extends State<GalleryPage> {
     }
   }
 
-  Map<String, List<File>> _groupImagesByMonth() {
-    final Map<String, List<File>> grouped = {};
-    for (final entry in journalEntries) {
-      final date = DateFormat('MMMM d, yyyy').parse(entry.date);
-      final key = DateFormat('MMMM, yyyy').format(date).toLowerCase();
-      if (!grouped.containsKey(key)) {
-        grouped[key] = [];
-      }
-      grouped[key]!.add(entry.imageFile!);
+  Future<void> _loadImages() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('journal_entries')
+        .where('userId', isEqualTo: uid)
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    final Map<String, List<String>> grouped = {};
+
+    for (var doc in snapshot.docs) {
+      final entry = JournalEntryData.fromJson(doc.data(), doc.id);
+      if (entry.imageUrl.isEmpty) continue;
+
+      try {
+        final date = DateFormat('MMMM d, yyyy').parse(entry.date);
+        final groupKey = DateFormat('MMMM, yyyy').format(date).toLowerCase();
+        if (!grouped.containsKey(groupKey)) grouped[groupKey] = [];
+        grouped[groupKey]!.add(entry.imageUrl);
+      } catch (_) {}
     }
-    return grouped;
+
+    setState(() => _groupedImageUrls = grouped);
   }
 
   @override
   Widget build(BuildContext context) {
-    final groupedImages = _groupImagesByMonth();
-
     return Scaffold(
       backgroundColor: AppColors.latteFoam,
       body: SafeArea(
@@ -54,7 +74,6 @@ class _GalleryPageState extends State<GalleryPage> {
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
-              // Top bar
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
@@ -77,21 +96,19 @@ class _GalleryPageState extends State<GalleryPage> {
                 ],
               ),
               const SizedBox(height: 16),
-
-              // Body
               Expanded(
-                child: groupedImages.isEmpty
+                child: _groupedImageUrls.isEmpty
                     ? const Center(
                   child: Text(
                     'no images yet',
                     style: TextStyle(
                       color: AppColors.brown,
-                      fontSize: 18, // ← updated font size
+                      fontSize: 18,
                     ),
                   ),
                 )
                     : ListView(
-                  children: groupedImages.entries.map((entry) {
+                  children: _groupedImageUrls.entries.map((entry) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -110,17 +127,15 @@ class _GalleryPageState extends State<GalleryPage> {
                           spacing: 12,
                           runSpacing: 12,
                           children: entry.value
-                              .map(
-                                (imageFile) => ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.file(
-                                imageFile,
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
-                              ),
+                              .map((imageUrl) => ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.network(
+                              imageUrl,
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
                             ),
-                          )
+                          ))
                               .toList(),
                         ),
                       ],
@@ -128,7 +143,6 @@ class _GalleryPageState extends State<GalleryPage> {
                   }).toList(),
                 ),
               ),
-
               const SizedBox(height: 16),
               NavBar(currentIndex: _selectedIndex, onTap: _onNavTap),
             ],

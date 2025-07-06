@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 //buttons
@@ -554,3 +555,130 @@ InputDecoration buildInputDecoration(String label, {Widget? suffixIcon}) {
     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
   );
 }
+
+class EmojiChoiceDialog extends StatelessWidget {
+  final void Function(String emoji) onSelect;
+
+  const EmojiChoiceDialog({super.key, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.latteFoam,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text(
+        "Mark this spot as...",
+        style: TextStyle(fontFamily: 'Playfair Display', fontWeight: FontWeight.bold, color: AppColors.brown),
+      ),
+      content: Wrap(
+        spacing: 16,
+        runSpacing: 16,
+        alignment: WrapAlignment.center,
+        children: [
+          TextButton(
+            onPressed: () => onSelect("☕️"),
+            child: const Text("☕️ Visited", style: TextStyle(fontSize: 22)),
+          ),
+          TextButton(
+            onPressed: () => onSelect("🤎"),
+            child: const Text("🤎 Want to Visit", style: TextStyle(fontSize: 22)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SearchBar extends StatelessWidget {
+  final TextEditingController controller;
+  final void Function(String) onSearch;
+
+  const SearchBar({super.key, required this.controller, required this.onSearch});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+      decoration: BoxDecoration(color: AppColors.brown, borderRadius: BorderRadius.circular(16)),
+      child: Row(
+        children: [
+          const Icon(Icons.search, color: AppColors.latteFoam),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              style: const TextStyle(color: AppColors.latteFoam, fontSize: 16),
+              decoration: InputDecoration(
+                hintText: "Search places...",
+                hintStyle: TextStyle(color: AppColors.latteFoam.withOpacity(0.7)),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+              ),
+              onSubmitted: onSearch,
+              textInputAction: TextInputAction.search,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MarkerListDialog extends StatelessWidget {
+  final String title;
+  final List<Marker> markers;
+  final Map<MarkerId, String> emojis;
+  final void Function(LatLng) onTap;
+
+  const MarkerListDialog({
+    super.key,
+    required this.title,
+    required this.markers,
+    required this.emojis,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.latteFoam,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.brown)),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: markers.isEmpty
+            ? const Text("No markers yet.", style: TextStyle(color: AppColors.brown))
+            : ListView.builder(
+          shrinkWrap: true,
+          itemCount: markers.length,
+          itemBuilder: (context, index) {
+            final marker = markers[index];
+            return ListTile(
+              leading: Text(emojis[marker.markerId] ?? "", style: const TextStyle(fontSize: 20)),
+              title: Text(
+                marker.infoWindow.title?.replaceAll(RegExp(r'^[^a-zA-Z0-9]*'), '') ?? 'Untitled',
+                style: const TextStyle(color: AppColors.brown),
+              ),
+              subtitle: Text(
+                'Lat: ${marker.position.latitude.toStringAsFixed(4)}, '
+                    'Lng: ${marker.position.longitude.toStringAsFixed(4)}',
+                style: const TextStyle(color: AppColors.brown, fontSize: 12),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                onTap(marker.position);
+              },
+            );
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Close", style: TextStyle(color: AppColors.sage)),
+        ),
+      ],
+    );
+  }
+}
+

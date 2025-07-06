@@ -12,10 +12,18 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const BrewNotes());
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    runApp(const BrewNotes());
+  } catch (e) {
+    runApp(MaterialApp(
+      home: Scaffold(
+        body: Center(child: Text("Failed to initialize Firebase: $e")),
+      ),
+    ));
+  }
 }
 
 class BrewNotes extends StatelessWidget {
@@ -35,6 +43,7 @@ class BrewNotes extends StatelessWidget {
         '/journal': (context) => const JournalPage(),
         '/add': (context) => const EntryPage(),
         '/profile': (context) => const ProfilePage(),
+        '/forgot': (context) => const ForgotPassword(),
       },
     );
   }

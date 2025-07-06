@@ -1,3 +1,4 @@
+import 'package:brew_notes/screens/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:brew_notes/theme.dart';
@@ -56,7 +57,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
+        MaterialPageRoute(builder: (_) => const ProfilePage()),
       );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
