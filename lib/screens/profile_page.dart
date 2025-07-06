@@ -68,7 +68,9 @@ class _ProfilePageState extends State<ProfilePage> {
       if (uid == null) return;
 
       try {
-        final ref = FirebaseStorage.instance.ref().child('profile_pictures/$uid.jpg');
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('profile_pictures/$uid/profile.jpg');
         await ref.putFile(file);
         final url = await ref.getDownloadURL();
 
