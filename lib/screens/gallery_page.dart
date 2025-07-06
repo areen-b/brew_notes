@@ -4,7 +4,7 @@ import 'package:brew_notes/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'journal_entry.dart'; // make sure this is imported
+import 'journal_entry.dart';
 
 class GalleryPage extends StatefulWidget {
   const GalleryPage({super.key});
@@ -15,7 +15,9 @@ class GalleryPage extends StatefulWidget {
 
 class _GalleryPageState extends State<GalleryPage> {
   int _selectedIndex = 1;
-  Map<String, List<String>> _groupedImageUrls = {};
+
+  // We'll use a map of DateTime to List<String> for correct sorting
+  Map<DateTime, List<String>> _groupedByDate = {};
 
   @override
   void initState() {
@@ -45,10 +47,9 @@ class _GalleryPageState extends State<GalleryPage> {
     final snapshot = await FirebaseFirestore.instance
         .collection('journal_entries')
         .where('userId', isEqualTo: uid)
-        .orderBy('timestamp', descending: true)
         .get();
 
-    final Map<String, List<String>> grouped = {};
+    final Map<DateTime, List<String>> grouped = {};
 
     for (var doc in snapshot.docs) {
       final entry = JournalEntryData.fromJson(doc.data(), doc.id);
@@ -56,17 +57,20 @@ class _GalleryPageState extends State<GalleryPage> {
 
       try {
         final date = DateFormat('MMMM d, yyyy').parse(entry.date);
-        final groupKey = DateFormat('MMMM, yyyy').format(date).toLowerCase();
-        if (!grouped.containsKey(groupKey)) grouped[groupKey] = [];
+        final groupKey = DateTime(date.year, date.month);
+        grouped.putIfAbsent(groupKey, () => []);
         grouped[groupKey]!.add(entry.imageUrl);
       } catch (_) {}
     }
 
-    setState(() => _groupedImageUrls = grouped);
+    setState(() => _groupedByDate = grouped);
   }
 
   @override
   Widget build(BuildContext context) {
+    final sortedEntries = _groupedByDate.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key)); // Oldest to newest
+
     return Scaffold(
       backgroundColor: AppColors.latteFoam,
       body: SafeArea(
@@ -97,7 +101,7 @@ class _GalleryPageState extends State<GalleryPage> {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: _groupedImageUrls.isEmpty
+                child: _groupedByDate.isEmpty
                     ? const Center(
                   child: Text(
                     'no images yet',
@@ -108,13 +112,15 @@ class _GalleryPageState extends State<GalleryPage> {
                   ),
                 )
                     : ListView(
-                  children: _groupedImageUrls.entries.map((entry) {
+                  children: sortedEntries.map((entry) {
+                    final dateLabel =
+                    DateFormat('MMMM, yyyy').format(entry.key);
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 12),
                         Text(
-                          entry.key,
+                          dateLabel.toLowerCase(),
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -126,17 +132,17 @@ class _GalleryPageState extends State<GalleryPage> {
                         Wrap(
                           spacing: 12,
                           runSpacing: 12,
-                          children: entry.value
-                              .map((imageUrl) => ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              imageUrl,
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover,
-                            ),
-                          ))
-                              .toList(),
+                          children: entry.value.map((imageUrl) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.network(
+                                imageUrl,
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ],
                     );
