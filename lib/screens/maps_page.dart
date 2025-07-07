@@ -329,7 +329,7 @@ class _MapsPageState extends State<MapsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.latteFoam,
+      backgroundColor: AppColors.latteFoam(context),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -337,7 +337,7 @@ class _MapsPageState extends State<MapsPage> {
             Row(children: [
               Expanded(child: SearchBar(controller: _searchController, onSearch: _searchAndMoveMap)),
               const SizedBox(width: 20),
-              const Row(children: [HomeButton(), ThemeToggleButton(iconColor: AppColors.brown)]),
+              Row(children: [HomeButton(), ThemeToggleButton(iconColor: AppColors.brown(context))]),
             ]),
             const SizedBox(height: 16),
             Row(
@@ -345,19 +345,19 @@ class _MapsPageState extends State<MapsPage> {
               children: [
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brown,
+                    backgroundColor: AppColors.shadow(context),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: _showVisitedList,
-                  child: const Text("☕️ Places Visited", style: TextStyle(color: Colors.white)),
+                  child: Text("☕️ Places Visited", style: TextStyle(color: AppColors.brown(context))),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brown,
+                    backgroundColor: AppColors.shadow(context),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: _showWantToVisitList,
-                  child: const Text("🤎 Want to Visit", style: TextStyle(color: Colors.white)),
+                  child: Text("🤎 Want to Visit", style: TextStyle(color: AppColors.brown(context))),
                 ),
               ],
             ),
@@ -381,6 +381,63 @@ class _MapsPageState extends State<MapsPage> {
             const SizedBox(height: 20),
             NavBar(currentIndex: _selectedIndex, onTap: _onNavTap),
           ]),
+        ),
+      ),
+    );
+  }
+}
+class EmojiChoiceDialog extends StatelessWidget {
+  final void Function(String emoji) onSelect;
+
+  const EmojiChoiceDialog({super.key, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Select a Marker Type"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextButton(
+            onPressed: () => onSelect("☕️"),
+            child: const Text("☕️ Visited"),
+          ),
+          TextButton(
+            onPressed: () => onSelect("🤎"),
+            child: const Text("🤎 Want to Visit"),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class SearchBar extends StatelessWidget {
+  final TextEditingController controller;
+  final void Function(String) onSearch;
+
+  const SearchBar({
+    super.key,
+    required this.controller,
+    required this.onSearch,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      onSubmitted: onSearch,
+      decoration: InputDecoration(
+        hintText: 'Search location...',
+        prefixIcon: const Icon(Icons.search),
+        filled: true,
+        fillColor: AppColors.latteFoam(context),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: AppColors.brown(context)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: AppColors.primary(context), width: 2.5),
         ),
       ),
     );

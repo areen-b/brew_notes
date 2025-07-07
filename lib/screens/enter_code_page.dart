@@ -3,8 +3,6 @@ import 'package:brew_notes/screens/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
-import 'package:pin_code_fields/pin_code_fields.dart';
-
 
 class EnterCode extends StatefulWidget {
   const EnterCode({super.key});
@@ -19,7 +17,7 @@ class _EnterCodeState extends State<EnterCode> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: AppColors.latteFoam,
+      backgroundColor: AppColors.latteFoam(context),
       body: Stack(
         children: [
           const TopCurveHeader(),
@@ -29,7 +27,7 @@ class _EnterCodeState extends State<EnterCode> {
               clipper: BottomCurveClipper(),
               child: Container(
                 height: 260,
-                color: AppColors.primary,
+                color: AppColors.primary(context),
               ),
             ),
           ),
@@ -45,16 +43,16 @@ class _EnterCodeState extends State<EnterCode> {
                         fontFamily: 'Playfair Display',
                         fontSize: screenWidth * 0.08,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.brown,
+                        color: AppColors.brown(context),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Enter the code that was sent to your email.',
                       style: TextStyle(
                         fontSize: 16,
                         fontStyle: FontStyle.italic,
-                        color: Colors.brown,
+                        color: AppColors.brown(context).withOpacity(0.8),
                       ),
                     ),
                     const SizedBox(height: 60),
@@ -62,12 +60,15 @@ class _EnterCodeState extends State<EnterCode> {
                     const SizedBox(height: 30),
                     SizedBox(
                       width: double.infinity,
-                      child: AppButton(label: 'log in', onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const HomePage()),
-                        );
-                      }),
+                      child: AppButton(
+                        label: 'log in',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const HomePage()),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),

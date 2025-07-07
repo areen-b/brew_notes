@@ -1,7 +1,5 @@
 import 'package:brew_notes/screens/forgot_password_page.dart';
 import 'package:brew_notes/screens/home_page.dart';
-import 'package:brew_notes/screens/landing_page.dart';
-import 'package:brew_notes/screens/profile_page.dart';
 import 'package:brew_notes/screens/signup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
@@ -37,22 +35,15 @@ class _LoginPageState extends State<LoginPage> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: AppColors.latteFoam,
+      backgroundColor: AppColors.latteFoam(context),
       body: Stack(
         children: [
-          ClipPath(
-            clipper: TopInverseCurveClipper(),
-            child: Container(height: 230, color: AppColors.brown),
+          const TopCurveHeader(),
+          Positioned(
+            top: 40,
+            right: 16,
+            child: ThemeToggleButton(iconColor: AppColors.brown(context)),
           ),
-          ClipPath(
-            clipper: TopInverseCurveClipper(),
-            child: Container(height: 180, color: AppColors.primary.withOpacity(0.8)),
-          ),
-          ClipPath(
-            clipper: TopInverseCurveClipper(),
-            child: Container(height: 140, color: AppColors.latteFoam.withOpacity(0.3)),
-          ),
-          const Positioned(top: 40, right: 16, child: ThemeToggleButton(iconColor: AppColors.brown)),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(top: 200, left: 15, right: 15),
@@ -61,56 +52,75 @@ class _LoginPageState extends State<LoginPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Log in',
-                          style: TextStyle(
-                            fontFamily: 'Playfair Display',
-                            fontSize: screenWidth * 0.08,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.brown,
-                          )),
-                      const SizedBox(width: 24),
+                      Text(
+                        'Log in',
+                        style: TextStyle(
+                          fontFamily: 'Playfair Display',
+                          fontSize: screenWidth * 0.08,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.brown(context),
+                        ),
+                      ),
+                      SizedBox(width: 24),
                       GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpPage())),
-                        child: Text('Sign up',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.08,
-                              fontFamily: 'Playfair Display',
-                              color: AppColors.brown.withOpacity(0.5),
-                            )),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const SignUpPage()),
+                        ),
+                        child: Text(
+                          'Sign up',
+                          style: TextStyle(
+                            fontSize: screenWidth * 0.08,
+                            fontFamily: 'Playfair Display',
+                            color: AppColors.brown(context).withOpacity(0.5),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 60),
+                  SizedBox(height: 60),
                   CustomTextField(label: "email", controller: _emailController),
-                  const SizedBox(height: 30),
+                  SizedBox(height: 30),
                   PasswordField(controller: _passwordController),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Align(
                     alignment: Alignment.centerRight,
                     child: GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPassword())),
-                      child: const Text(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ForgotPassword()),
+                      ),
+                      child: Text(
                         "forgot password?",
                         style: TextStyle(
-                          color: AppColors.sage,
+                          color: AppColors.sage(context),
                           fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
-                    child: AppButton(label: 'Log in', color: AppColors.brown, onPressed: _loginUser),
+                    child: AppButton(
+                      label: 'Log in',
+                      color: AppColors.dark,
+                      textColor: AppColors.light,
+                      onPressed: _loginUser,
+                    ),
                   ),
-                  const SizedBox(height: 30),
+                  SizedBox(height: 30),
                   if (_error != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: Text(
                         _error!,
-                        style: const TextStyle(color: AppColors.error, fontSize: 14),
+                        style: TextStyle(
+                          color: AppColors.error,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                 ],

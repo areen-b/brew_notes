@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:brew_notes/widgets.dart';
@@ -86,28 +85,28 @@ class _JournalPageState extends State<JournalPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.latteFoam,
+        backgroundColor: AppColors.latteFoam(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Delete Entry?',
           style: TextStyle(
-            color: AppColors.brown,
+            color: AppColors.brown(context),
             fontFamily: 'Playfair Display',
             fontWeight: FontWeight.bold,
           ),
         ),
-        content: const Text(
+        content: Text(
           'Are you sure you want to delete this entry? This cannot be undone.',
-          style: TextStyle(color: AppColors.brown),
+          style: TextStyle(color: AppColors.brown(context)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.brown)),
+            child: Text('Cancel', style: TextStyle(color: AppColors.brown(context))),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+            child: Text('Delete', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -125,44 +124,50 @@ class _JournalPageState extends State<JournalPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.latteFoam,
+      backgroundColor: AppColors.latteFoam(context),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Title row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'daily entries',
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Playfair Display',
-                      color: AppColors.brown,
+                      color: AppColors.brown(context),
                     ),
                   ),
                   Row(
-                    children: const [
-                      HomeButton(),
-                      SizedBox(width: 8),
-                      ThemeToggleButton(iconColor: AppColors.brown),
+                    children: [
+                      const HomeButton(),
+                      const SizedBox(width: 8),
+                      ThemeToggleButton(iconColor: AppColors.brown(context)),
                     ],
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              const Text('your saved moments ☕️', style: TextStyle(fontSize: 18, color: AppColors.brown)),
+              Text(
+                'your saved moments ☕️',
+                style: TextStyle(fontSize: 18, color: AppColors.brown(context)),
+              ),
               const SizedBox(height: 20),
+
+              // Entry list
               Expanded(
                 child: _entries.isEmpty
-                    ? const Center(
+                    ? Center(
                   child: Text(
                     "no entries yet.\ntap below to add one!",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18, color: AppColors.brown),
+                    style: TextStyle(fontSize: 18, color: AppColors.brown(context)),
                   ),
                 )
                     : ListView.separated(
@@ -176,9 +181,11 @@ class _JournalPageState extends State<JournalPage> {
                       height: 520,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.65),
+                        color: AppColors.shadow(context).withOpacity(0.65),
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))
+                        ],
                       ),
                       child: Column(
                         children: [
@@ -186,21 +193,26 @@ class _JournalPageState extends State<JournalPage> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppColors.primary,
+                              color: AppColors.constPrimary,
                               borderRadius: BorderRadius.circular(12),
-                              boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))
+                              ],
                             ),
                             child: Column(
                               children: [
-                                Text(entry.title,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: 'Playfair Display',
-                                        fontSize: 20,
-                                        color: AppColors.latteFoam)),
+                                Text(
+                                  entry.title,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Playfair Display',
+                                    fontSize: 20,
+                                    color: AppColors.light,
+                                  ),
+                                ),
                                 const SizedBox(height: 4),
                                 Text(entry.date,
-                                    style: const TextStyle(fontSize: 14, color: AppColors.latteFoam)),
+                                    style: TextStyle(fontSize: 14, color: AppColors.light)),
                               ],
                             ),
                           ),
@@ -217,13 +229,18 @@ class _JournalPageState extends State<JournalPage> {
                                           height: 100,
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
-                                            color: AppColors.caramel,
+                                            color: AppColors.caramel(context),
                                             borderRadius: BorderRadius.circular(12),
-                                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                  color: Colors.black26,
+                                                  blurRadius: 6,
+                                                  offset: Offset(2, 4))
+                                            ],
                                           ),
                                           child: SingleChildScrollView(
                                             child: Text(entry.address,
-                                                style: const TextStyle(color: AppColors.brown)),
+                                                style: TextStyle(color: AppColors.dark)),
                                           ),
                                         ),
                                       ),
@@ -233,9 +250,14 @@ class _JournalPageState extends State<JournalPage> {
                                           height: 100,
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
-                                            color: AppColors.caramel,
+                                            color: AppColors.caramel(context),
                                             borderRadius: BorderRadius.circular(12),
-                                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                  color: Colors.black26,
+                                                  blurRadius: 6,
+                                                  offset: Offset(2, 4))
+                                            ],
                                           ),
                                           child: StarRating(
                                             rating: entry.rating.toInt(),
@@ -251,15 +273,18 @@ class _JournalPageState extends State<JournalPage> {
                                     width: double.infinity,
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color: AppColors.sage,
+                                      color: AppColors.sage(context),
                                       borderRadius: BorderRadius.circular(12),
-                                      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))],
+                                      boxShadow: const [
+                                        BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4))
+                                      ],
                                     ),
                                     child: SingleChildScrollView(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: entry.notes
-                                            .map((note) => Text('• $note', style: const TextStyle(color: AppColors.latteFoam)))
+                                            .map((note) => Text('• $note',
+                                            style: TextStyle(color: AppColors.dark)))
                                             .toList(),
                                       ),
                                     ),
@@ -283,18 +308,17 @@ class _JournalPageState extends State<JournalPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              EditButton(
-                                onPressed: () => _navigateToEditPage(entry),
-                              ),
+                              EditButton(onPressed: () => _navigateToEditPage(entry)),
                               const SizedBox(width: 12),
                               ElevatedButton.icon(
                                 onPressed: () => _deleteEntry(entry),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.error,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14)),
                                 ),
-                                icon: const Icon(Icons.delete, color: AppColors.latteFoam),
-                                label: const Text('delete', style: TextStyle(color: AppColors.latteFoam)),
+                                icon: Icon(Icons.delete, color: AppColors.dark),
+                                label: Text('delete', style: TextStyle(color: AppColors.dark)),
                               ),
                             ],
                           ),
@@ -309,11 +333,11 @@ class _JournalPageState extends State<JournalPage> {
                 child: ElevatedButton.icon(
                   onPressed: _navigateToAddPage,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brown,
+                    backgroundColor: AppColors.dark,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
-                  icon: const Icon(Icons.add, color: AppColors.latteFoam),
-                  label: const Text('add new entry', style: TextStyle(color: AppColors.latteFoam)),
+                  icon: Icon(Icons.add, color: AppColors.light),
+                  label: Text('add new entry', style: TextStyle(color: AppColors.light)),
                 ),
               ),
               const SizedBox(height: 16),

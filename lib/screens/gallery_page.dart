@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'journal_entry.dart';
 import 'package:brew_notes/screens/image_viewer.dart';
+
 class GalleryPage extends StatefulWidget {
   const GalleryPage({super.key});
 
@@ -15,7 +16,6 @@ class GalleryPage extends StatefulWidget {
 
 class _GalleryPageState extends State<GalleryPage> {
   int _selectedIndex = 1;
-
   Map<DateTime, List<String>> _groupedByDate = {};
 
   @override
@@ -68,10 +68,10 @@ class _GalleryPageState extends State<GalleryPage> {
   @override
   Widget build(BuildContext context) {
     final sortedEntries = _groupedByDate.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key)); // Oldest to newest
+      ..sort((a, b) => a.key.compareTo(b.key));
 
     return Scaffold(
-      backgroundColor: AppColors.latteFoam,
+      backgroundColor: AppColors.latteFoam(context),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -79,21 +79,21 @@ class _GalleryPageState extends State<GalleryPage> {
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Text(
                     'gallery',
                     style: TextStyle(
                       fontSize: 26,
                       fontFamily: 'Playfair Display',
                       fontWeight: FontWeight.bold,
-                      color: AppColors.brown,
+                      color: AppColors.brown(context),
                     ),
                   ),
                   Row(
                     children: [
-                      HomeButton(),
-                      SizedBox(width: 8),
-                      ThemeToggleButton(iconColor: AppColors.brown),
+                      const HomeButton(),
+                      const SizedBox(width: 8),
+                      ThemeToggleButton(iconColor: AppColors.brown(context)),
                     ],
                   ),
                 ],
@@ -101,11 +101,11 @@ class _GalleryPageState extends State<GalleryPage> {
               const SizedBox(height: 16),
               Expanded(
                 child: _groupedByDate.isEmpty
-                    ? const Center(
+                    ? Center(
                   child: Text(
                     'no images yet',
                     style: TextStyle(
-                      color: AppColors.brown,
+                      color: AppColors.brown(context),
                       fontSize: 18,
                     ),
                   ),
@@ -120,10 +120,10 @@ class _GalleryPageState extends State<GalleryPage> {
                         const SizedBox(height: 12),
                         Text(
                           dateLabel.toLowerCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.brown,
+                            color: AppColors.brown(context),
                             fontFamily: 'Playfair Display',
                           ),
                         ),
@@ -137,7 +137,9 @@ class _GalleryPageState extends State<GalleryPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => ImageViewerPage(imageUrl: imageUrl),
+                                    builder: (_) => ImageViewerPage(
+                                      imageUrl: imageUrl,
+                                    ),
                                   ),
                                 );
                               },

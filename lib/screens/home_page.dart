@@ -29,7 +29,6 @@ class _HomePageState extends State<HomePage> {
   ];
 
   @override
-  @override
   void initState() {
     super.initState();
     _loadUserData();
@@ -39,38 +38,30 @@ class _HomePageState extends State<HomePage> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final uid = user.uid;
-
-    // Load display name
     setState(() {
       displayName = user.displayName ?? 'coffee friend';
     });
 
-    // Get visited count
     final visitedSnapshot = await FirebaseFirestore.instance
         .collection('map_markers_v2')
-        .where('userId', isEqualTo: uid)
+        .where('userId', isEqualTo: user.uid)
         .where('type', isEqualTo: 'visited')
         .get();
+
+    final moodDoc = await FirebaseFirestore.instance
+        .collection('user_moods')
+        .doc(user.uid)
+        .get();
+
     if (mounted) {
       setState(() {
         visitedCount = visitedSnapshot.docs.length;
-      });
-    }
-
-    // Get stored mood
-    final moodDoc = await FirebaseFirestore.instance
-        .collection('user_moods')
-        .doc(uid)
-        .get();
-
-    if (mounted && moodDoc.exists && moodDoc.data()!.containsKey('mood')) {
-      setState(() {
-        selectedMood = moodDoc['mood'];
+        if (moodDoc.exists && moodDoc.data()!.containsKey('mood')) {
+          selectedMood = moodDoc['mood'];
+        }
       });
     }
   }
-
 
   Future<void> _saveMood(String mood) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -102,7 +93,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.latteFoam,
+      backgroundColor: AppColors.latteFoam(context),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -115,14 +106,14 @@ class _HomePageState extends State<HomePage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppColors.brown,
+                      color: AppColors.shadow(context),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: RichText(
                       text: TextSpan(
                         text: 'Hello, ',
-                        style: const TextStyle(
-                          color: AppColors.latteFoam,
+                        style: TextStyle(
+                          color: AppColors.brown(context),
                           fontSize: 20,
                           fontFamily: 'Playfair Display',
                           fontWeight: FontWeight.bold,
@@ -137,30 +128,29 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  const ThemeToggleButton(iconColor: AppColors.brown),
+                  ThemeToggleButton(iconColor: AppColors.brown(context)),
                 ],
               ),
 
               const SizedBox(height: 50),
 
-              // Divider
               Container(
                 height: 4.5,
                 width: double.infinity,
-                color: AppColors.brown,
+                color: AppColors.shadow(context),
               ),
+
               const SizedBox(height: 40),
 
-              // Quote
               HomeCard(
-                children: const [
+                children: [
                   Text(
                     'memories brewed\none sip at a time',
                     style: TextStyle(
                       fontFamily: 'Playfair Display',
                       fontSize: 22,
                       fontStyle: FontStyle.italic,
-                      color: AppColors.brown,
+                      color: AppColors.brown(context),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -169,24 +159,23 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 30),
 
-              // Places Visited
               HomeCard(
                 children: [
                   Text(
                     '$visitedCount',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Playfair Display',
-                      color: AppColors.brown,
+                      color: AppColors.brown(context),
                     ),
                   ),
-                  const Text(
+                  Text(
                     'places visited',
                     style: TextStyle(
                       fontSize: 18,
                       fontFamily: 'Playfair Display',
-                      color: AppColors.brown,
+                      color: AppColors.brown(context),
                     ),
                   ),
                 ],
@@ -194,25 +183,24 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 30),
 
-              // Mood Card with dropdown
               HomeCard(
                 children: [
-                  const Text(
+                  Text(
                     "today’s mood",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
-                      color: AppColors.brown,
+                      color: AppColors.brown(context),
                     ),
                   ),
                   const SizedBox(height: 8),
                   DropdownButton<String>(
                     value: selectedMood,
-                    icon: const Icon(Icons.arrow_drop_down, color: AppColors.brown),
-                    dropdownColor: AppColors.latteFoam,
+                    icon: Icon(Icons.arrow_drop_down, color: AppColors.brown(context)),
+                    dropdownColor: AppColors.latteFoam(context),
                     borderRadius: BorderRadius.circular(16),
-                    style: const TextStyle(
-                      color: AppColors.brown,
+                    style: TextStyle(
+                      color: AppColors.brown(context),
                       fontSize: 18,
                       fontFamily: 'Playfair Display',
                     ),
@@ -235,11 +223,7 @@ class _HomePageState extends State<HomePage> {
 
               const Spacer(),
 
-              // Bottom Nav
-              NavBar(
-                currentIndex: _selectedIndex,
-                onTap: _onNavTap,
-              ),
+              NavBar(currentIndex: _selectedIndex, onTap: _onNavTap),
             ],
           ),
         ),

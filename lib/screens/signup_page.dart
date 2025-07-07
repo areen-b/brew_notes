@@ -78,65 +78,77 @@ class _SignUpPageState extends State<SignUpPage> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: AppColors.latteFoam,
+      backgroundColor: AppColors.latteFoam(context),
       body: Stack(
         children: [
-          ClipPath(clipper: TopInverseCurveClipper(), child: Container(height: 230, color: AppColors.brown)),
-          ClipPath(clipper: TopInverseCurveClipper(), child: Container(height: 180, color: AppColors.primary.withOpacity(0.9))),
-          ClipPath(clipper: TopInverseCurveClipper(), child: Container(height: 140, color: AppColors.latteFoam.withOpacity(0.3))),
-          const Positioned(top: 40, right: 16, child: ThemeToggleButton(iconColor: AppColors.brown)),
+          const TopCurveHeader(),
+          Positioned(
+            top: 40,
+            right: 16,
+            child: ThemeToggleButton(iconColor: AppColors.brown(context)),
+          ),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(top: 200, left: 15, right: 15),
               child: Column(
                 children: [
-                  // tab header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       GestureDetector(
-                        onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginPage())),
-                        child: Text('Log in',
-                            style: TextStyle(
-                              fontSize: screenWidth * 0.08,
-                              fontFamily: 'Playfair Display',
-                              color: AppColors.brown.withOpacity(0.5),
-                            )),
-                      ),
-                      const SizedBox(width: 24),
-                      Text('Sign up',
+                        onTap: () => Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginPage()),
+                        ),
+                        child: Text(
+                          'Log in',
                           style: TextStyle(
                             fontSize: screenWidth * 0.08,
                             fontFamily: 'Playfair Display',
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.brown,
-                          )),
+                            color: AppColors.brown(context).withOpacity(0.5),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Text(
+                        'Sign up',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.08,
+                          fontFamily: 'Playfair Display',
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.brown(context),
+                        ),
+                      ),
                     ],
                   ),
-
                   const SizedBox(height: 60),
                   CustomTextField(label: "username", controller: _usernameController),
                   const SizedBox(height: 30),
                   CustomTextField(label: "email", controller: _emailController),
                   if (_emailError.isNotEmpty)
-                    Text(_emailError, style: const TextStyle(color: AppColors.error)),
+                    Text(_emailError, style: TextStyle(color: AppColors.error)),
                   const SizedBox(height: 30),
                   PasswordField(controller: _passwordController),
                   if (_passwordError.isNotEmpty)
-                    Text(_passwordError, style: const TextStyle(color: AppColors.error)),
+                    Text(_passwordError, style: TextStyle(color: AppColors.error)),
                   const SizedBox(height: 30),
                   ConfirmPasswordField(controller: _confirmPasswordController),
                   if (_confirmPasswordError.isNotEmpty)
-                    Text(_confirmPasswordError, style: const TextStyle(color: AppColors.error)),
+                    Text(_confirmPasswordError, style: TextStyle(color: AppColors.error)),
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
-                    child: AppButton(label: 'Sign up', color: AppColors.brown, onPressed: _signUpUser),
+                    child: AppButton(
+                      label: 'Sign up',
+                      color: AppColors.dark,
+                      textColor: AppColors.light,
+                      onPressed: _signUpUser,
+                    ),
                   ),
                   if (_formError.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 16.0),
-                      child: Text(_formError, style: const TextStyle(color: AppColors.error)),
+                      child: Text(_formError, style: TextStyle(color: AppColors.error)),
                     ),
                 ],
               ),

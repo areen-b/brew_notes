@@ -33,7 +33,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: AppColors.latteFoam,
+      backgroundColor: AppColors.latteFoam(context),
       body: Stack(
         children: [
           const TopCurveHeader(),
@@ -41,7 +41,10 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             alignment: Alignment.bottomCenter,
             child: ClipPath(
               clipper: BottomCurveClipper(),
-              child: Container(height: 260, color: AppColors.primary),
+              child: Container(
+                height: 260,
+                color: AppColors.shadow(context),
+              ),
             ),
           ),
           SafeArea(
@@ -56,16 +59,16 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                         fontFamily: 'Playfair Display',
                         fontSize: screenWidth * 0.08,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.brown,
+                        color: AppColors.brown(context),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Enter your email to reset your password.',
                       style: TextStyle(
                         fontSize: 16,
                         fontStyle: FontStyle.italic,
-                        color: Colors.brown,
+                        color: AppColors.brown(context).withOpacity(0.8),
                       ),
                     ),
                     const SizedBox(height: 60),
@@ -77,8 +80,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                     SizedBox(
                       width: double.infinity,
                       child: AppButton(
-                        color: AppColors.brown,
                         label: 'send reset link',
+                        textColor: AppColors.light,
                         onPressed: _sendResetEmail,
                       ),
                     ),

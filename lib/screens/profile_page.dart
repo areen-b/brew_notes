@@ -68,9 +68,7 @@ class _ProfilePageState extends State<ProfilePage> {
       if (uid == null) return;
 
       try {
-        final ref = FirebaseStorage.instance
-            .ref()
-            .child('profile_pictures/$uid/profile.jpg');
+        final ref = FirebaseStorage.instance.ref().child('profile_pictures/$uid/profile.jpg');
         await ref.putFile(file);
         final url = await ref.getDownloadURL();
 
@@ -91,19 +89,19 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (_) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: AlertDialog(
-          backgroundColor: AppColors.latteFoam,
+          backgroundColor: AppColors.latteFoam(context),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(title,
-              style: const TextStyle(
+              style: TextStyle(
                   fontFamily: 'Playfair Display',
                   fontWeight: FontWeight.bold,
-                  color: AppColors.brown)),
+                  color: AppColors.brown(context))),
           content: Text(message,
-              style: const TextStyle(color: AppColors.brown, fontFamily: 'Playfair Display')),
+              style: TextStyle(color: AppColors.brown(context), fontFamily: 'Playfair Display')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("OK", style: TextStyle(color: AppColors.sage)),
+              child: Text("OK", style: TextStyle(color: AppColors.sage(context))),
             ),
           ],
         ),
@@ -115,30 +113,30 @@ class _ProfilePageState extends State<ProfilePage> {
     final controller = TextEditingController();
     _showBlurDialog(
       AlertDialog(
-        backgroundColor: AppColors.latteFoam,
+        backgroundColor: AppColors.latteFoam(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text("Edit Username",
+        title: Text("Edit Username",
             style: TextStyle(
-                fontWeight: FontWeight.bold, fontFamily: 'Playfair Display', color: AppColors.brown)),
+                fontWeight: FontWeight.bold, fontFamily: 'Playfair Display', color: AppColors.brown(context))),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Current: $displayName", style: const TextStyle(color: AppColors.brown)),
+            Text("Current: $displayName", style: TextStyle(color: AppColors.brown(context))),
             const SizedBox(height: 10),
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: "New Username",
-                labelStyle: TextStyle(color: AppColors.brown),
+                labelStyle: TextStyle(color: AppColors.brown(context)),
               ),
-              style: const TextStyle(color: AppColors.brown),
+              style: TextStyle(color: AppColors.brown(context)),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(color: AppColors.sage)),
+            child: Text("Cancel", style: TextStyle(color: AppColors.sage(context))),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -150,7 +148,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 _showConfirmationDialog("Username Updated", "Your username has been changed.");
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.sage),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.sage(context)),
             child: const Text("Confirm", style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -163,11 +161,11 @@ class _ProfilePageState extends State<ProfilePage> {
     final newPasswordController = TextEditingController();
     _showBlurDialog(
       AlertDialog(
-        backgroundColor: AppColors.latteFoam,
+        backgroundColor: AppColors.latteFoam(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text("Change Password",
+        title: Text("Change Password",
             style: TextStyle(
-                fontWeight: FontWeight.bold, fontFamily: 'Playfair Display', color: AppColors.brown)),
+                fontWeight: FontWeight.bold, fontFamily: 'Playfair Display', color: AppColors.brown(context))),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -187,7 +185,7 @@ class _ProfilePageState extends State<ProfilePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(color: AppColors.sage)),
+            child: Text("Cancel", style: TextStyle(color: AppColors.sage(context))),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -211,7 +209,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 }
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.sage),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.sage(context)),
             child: const Text("Confirm", style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -233,7 +231,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.latteFoam,
+      backgroundColor: AppColors.latteFoam(context),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -241,14 +239,18 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Text('my profile',
                       style: TextStyle(
                           fontSize: 26,
                           fontFamily: 'Playfair Display',
                           fontWeight: FontWeight.bold,
-                          color: AppColors.brown)),
-                  Row(children: [HomeButton(), SizedBox(width: 8), ThemeToggleButton(iconColor: AppColors.brown)])
+                          color: AppColors.brown(context))),
+                  Row(children: [
+                    const HomeButton(),
+                    const SizedBox(width: 8),
+                    ThemeToggleButton(iconColor: AppColors.brown(context))
+                  ])
                 ],
               ),
               const SizedBox(height: 24),
@@ -258,10 +260,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(30),
                     child: _profileImageUrl != null
-                        ? Image.network(_profileImageUrl!,
-                        height: 240, width: 230, fit: BoxFit.cover)
-                        : Image.asset('assets/images/coffee.jpg',
-                        height: 240, width: 230, fit: BoxFit.cover),
+                        ? Image.network(_profileImageUrl!, height: 240, width: 230, fit: BoxFit.cover)
+                        : Image.asset('assets/images/coffee.jpg', height: 240, width: 230, fit: BoxFit.cover),
                   ),
                   Positioned(
                     bottom: 10,
@@ -269,12 +269,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: GestureDetector(
                       onTap: _pickProfileImage,
                       child: Container(
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.sage,
+                          color: AppColors.sage(context),
                         ),
                         padding: const EdgeInsets.all(8),
-                        child: const Icon(Icons.edit, size: 20, color: AppColors.latteFoam),
+                        child: Icon(Icons.edit, size: 20, color: AppColors.latteFoam(context)),
                       ),
                     ),
                   ),
@@ -289,7 +289,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 width: double.infinity,
                 child: AppButton(
                   label: 'Log out',
-                  color: AppColors.darkCrml,
+                  color: AppColors.darkCrml(context),
+                  textColor: AppColors.light,
                   onPressed: () async {
                     await FirebaseAuth.instance.signOut();
                     if (context.mounted) {
@@ -329,22 +330,24 @@ class ProfileInfoTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 18),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: AppColors.brown,
+        color: AppColors.shadow(context),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: const [BoxShadow(color: Colors.brown, blurRadius: 6, offset: Offset(2, 3))],
+        boxShadow: [
+          BoxShadow(color: AppColors.shadow(context), blurRadius: 6, offset: const Offset(2, 3)),
+        ],
       ),
       child: Row(
         children: [
           Text('$label: ',
-              style: const TextStyle(color: AppColors.latteFoam, fontWeight: FontWeight.bold)),
+              style: TextStyle(color: AppColors.inverse(context), fontWeight: FontWeight.bold)),
           Expanded(
             child: Text(value,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: AppColors.latteFoam, fontStyle: FontStyle.italic)),
+                style: TextStyle(color: AppColors.inverse(context), fontStyle: FontStyle.italic)),
           ),
           if (editable)
             IconButton(
-              icon: const Icon(Icons.edit, color: AppColors.sage),
+              icon: Icon(Icons.edit, color: AppColors.sage(context)),
               onPressed: onEdit,
             ),
         ],
@@ -352,3 +355,4 @@ class ProfileInfoTile extends StatelessWidget {
     );
   }
 }
+

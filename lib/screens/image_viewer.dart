@@ -9,10 +9,10 @@ class ImageViewerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.latteFoam,
+      backgroundColor: AppColors.latteFoam(context),
       appBar: AppBar(
-        backgroundColor: AppColors.latteFoam,
-        iconTheme: const IconThemeData(color: AppColors.brown),
+        backgroundColor: AppColors.latteFoam(context),
+        iconTheme: IconThemeData(color: AppColors.brown(context)),
         elevation: 0,
         toolbarHeight: 35,
       ),
@@ -20,7 +20,7 @@ class ImageViewerPage extends StatelessWidget {
         padding: const EdgeInsets.all(15),
         child: InteractiveViewer(
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(30), // Curved corners
+            borderRadius: BorderRadius.circular(30),
             child: SizedBox.expand(
               child: Image.network(
                 imageUrl,

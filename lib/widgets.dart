@@ -2,42 +2,47 @@ import 'package:flutter/material.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:brew_notes/main.dart';
 
-//buttons
+// App Button
 class AppButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
   final Color? color;
+  final Color? textColor;
 
   const AppButton({
     super.key,
     required this.label,
     required this.onPressed,
     this.color,
+    this.textColor,
   });
 
   @override
   Widget build(BuildContext context) {
-      return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: AppColors.latteFoam,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          elevation: 6,
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color ?? AppColors.dark,
+        foregroundColor: AppColors.latteFoam(context),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
         ),
-        onPressed: onPressed,
-        child: Text(
-          label,
-          style: AppTextStyles.button,
+        elevation: 6,
+      ),
+      onPressed: onPressed,
+      child: Text(
+        label,
+        style: AppTextStyles.button(context).copyWith(
+          color: textColor ?? AppColors.latteFoam(context),
         ),
-      );
+      ),
+    );
   }
 }
 
-//top curve for landing page
+// Curves
 class TopCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -58,26 +63,15 @@ class TopCurveClipper extends CustomClipper<Path> {
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
-//bottom curve for forgot password/enter code
 class BottomCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-
-    // Start from top-left
     path.moveTo(0, 0);
-
-    // Curve downward — control point near right side, end point deeper
-    path.quadraticBezierTo(
-        size.width * 0.25, size.height + 20, // control point
-        size.width, size.height * 0.1        // end point
-    );
-
-    // Close shape
+    path.quadraticBezierTo(size.width * 0.25, size.height + 20, size.width, size.height * 0.1);
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
-
     return path;
   }
 
@@ -85,27 +79,14 @@ class BottomCurveClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-//top curve for login/signup/forgot password/enter code page
 class TopInverseCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-
-    // Start from bottom-left
     path.lineTo(0, size.height);
-
-    // Draw an upward curve (frown shape)
-    path.quadraticBezierTo(
-      size.width / 1.5,
-      -size.height * 0.2,
-      size.width,
-      size.height,
-    );
-
+    path.quadraticBezierTo(size.width / 1.5, -size.height * 0.2, size.width, size.height);
     path.lineTo(size.width, 0);
-    path.lineTo(0, 0);
     path.close();
-
     return path;
   }
 
@@ -113,7 +94,6 @@ class TopInverseCurveClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-//top inverse curve with layers
 class TopCurveHeader extends StatelessWidget {
   final double height1;
   final double height2;
@@ -133,86 +113,75 @@ class TopCurveHeader extends StatelessWidget {
         ClipPath(
           clipper: TopInverseCurveClipper(),
           child: Container(
-            height: height1,
-            color: AppColors.brown,
+            height: 230,
+            color: AppColors.dark,
           ),
         ),
         ClipPath(
           clipper: TopInverseCurveClipper(),
           child: Container(
-            height: height2,
-            color: AppColors.primary.withOpacity(0.8),
+            height: 180,
+            color: AppColors.shadow(context),
           ),
         ),
         ClipPath(
           clipper: TopInverseCurveClipper(),
           child: Container(
-            height: height3,
-            color: AppColors.latteFoam.withOpacity(0.3),
+            height: 140,
+            color: AppColors.shadow(context),
           ),
         ),
-        const Positioned(
+        Positioned(
           top: 40,
           right: 16,
-          child: ThemeToggleButton(iconColor: AppColors.brown),
+          child: ThemeToggleButton(iconColor: AppColors.brown(context)),
         ),
       ],
     );
   }
 }
 
-//back button
+// Back/Home Buttons
 class BackButtonText extends StatelessWidget {
-  final Color color;
+  final Color? color;
 
-  const BackButtonText({
-    super.key,
-    this.color = AppColors.latteFoam,
-  });
+  const BackButtonText({super.key, this.color});
 
   @override
   Widget build(BuildContext context) {
+    final iconColor = color ?? AppColors.latteFoam(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.arrow_back_ios_new, size: 18, color: color),
+        Icon(Icons.arrow_back_ios_new, size: 18, color: iconColor),
         const SizedBox(width: 4),
         Text(
           'back',
-          style: TextStyle(
-            color: color,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(color: iconColor, fontSize: 16, fontWeight: FontWeight.w500),
         )
       ],
     );
   }
 }
 
-//home button
 class HomeButton extends StatelessWidget {
-  final Color iconColor;
+  final Color? iconColor;
 
-  const HomeButton({
-    super.key,
-    this.iconColor = AppColors.brown,
-  });
+  const HomeButton({super.key, this.iconColor});
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.home),
-      color: iconColor,
+      color: iconColor ?? AppColors.brown(context),
       iconSize: 34,
       tooltip: 'Back to Home',
-      onPressed: () {
-        Navigator.pushReplacementNamed(context, '/home');
-      },
+      onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
     );
   }
 }
 
+// Edit Icon
 class EditButton extends StatelessWidget {
   final VoidCallback onPressed;
 
@@ -221,79 +190,76 @@ class EditButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.sage,
+      color: AppColors.sage(context),
       borderRadius: BorderRadius.circular(30),
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(30),
-        child: const Padding(
-          padding: EdgeInsets.all(10),
-          child: Icon(Icons.edit, color: AppColors.brown, size: 24),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Icon(Icons.edit, color: AppColors.brown(context), size: 24),
         ),
       ),
     );
   }
 }
 
-//light/dark mode
+// Theme Toggle
 class ThemeToggleButton extends StatelessWidget {
-  final VoidCallback? onTap;
   final Color? iconColor;
 
-  const ThemeToggleButton({super.key, this.onTap, this.iconColor});
+  const ThemeToggleButton({super.key, this.iconColor});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = themeModeNotifier.value == ThemeMode.dark;
+
     return GestureDetector(
-      onTap: onTap ?? () {
-        // TODO: Implement theme switch logic here
-        print("Theme toggle tapped!");
+      onTap: () {
+        themeModeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
       },
-      child: Icon(
-        Icons.dark_mode,
-        color: iconColor ?? AppColors.brown,
-        size: 30,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+        ),
+        child: Icon(
+          isDark ? Icons.light_mode : Icons.dark_mode,
+          size: 26,
+          color: iconColor ?? Theme.of(context).colorScheme.onSurface,
+        ),
       ),
     );
   }
 }
 
-//text field
+// Text Fields
 class CustomTextField extends StatelessWidget {
   final String label;
   final TextEditingController? controller;
 
-  const CustomTextField({
-    super.key,
-    required this.label,
-    this.controller,
-  });
+  const CustomTextField({super.key, required this.label, this.controller});
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      decoration: buildInputDecoration(label),
+      decoration: buildInputDecoration(context, label),
     );
   }
 }
 
-//password for signup/login
 class PasswordField extends StatefulWidget {
   final String label;
   final TextEditingController? controller;
 
-  const PasswordField({
-    super.key,
-    this.label = "password",
-    this.controller,
-  });
+  const PasswordField({super.key, this.label = "password", this.controller});
 
   @override
   State<PasswordField> createState() => _PasswordFieldState();
 }
 
-//password for signup/login
 class _PasswordFieldState extends State<PasswordField> {
   bool _obscure = true;
 
@@ -303,37 +269,29 @@ class _PasswordFieldState extends State<PasswordField> {
       controller: widget.controller,
       obscureText: _obscure,
       decoration: buildInputDecoration(
+        context,
         widget.label,
         suffixIcon: IconButton(
           icon: Icon(
             _obscure ? Icons.visibility_off : Icons.visibility,
-            color: AppColors.brown,
+            color: AppColors.brown(context),
           ),
-          onPressed: () {
-            setState(() {
-              _obscure = !_obscure;
-            });
-          },
+          onPressed: () => setState(() => _obscure = !_obscure),
         ),
       ),
     );
   }
 }
 
-//confirm password for sign up
 class ConfirmPasswordField extends StatefulWidget {
   final TextEditingController? controller;
 
-  const ConfirmPasswordField({
-    super.key,
-    this.controller,
-  });
+  const ConfirmPasswordField({super.key, this.controller});
 
   @override
   State<ConfirmPasswordField> createState() => _ConfirmPasswordFieldState();
 }
 
-//confirm password for sign up
 class _ConfirmPasswordFieldState extends State<ConfirmPasswordField> {
   bool _obscure = true;
 
@@ -343,33 +301,26 @@ class _ConfirmPasswordFieldState extends State<ConfirmPasswordField> {
       controller: widget.controller,
       obscureText: _obscure,
       decoration: buildInputDecoration(
+        context,
         "confirm password",
         suffixIcon: IconButton(
           icon: Icon(
             _obscure ? Icons.visibility_off : Icons.visibility,
-            color: AppColors.brown,
+            color: AppColors.brown(context),
           ),
-          onPressed: () {
-            setState(() {
-              _obscure = !_obscure;
-            });
-          },
+          onPressed: () => setState(() => _obscure = !_obscure),
         ),
       ),
     );
   }
 }
 
-//enter code field after forgot password
+// Pin Code Field
 class CodeInputField extends StatelessWidget {
   final void Function(String)? onChanged;
   final void Function(String)? onCompleted;
 
-  const CodeInputField({
-    super.key,
-    this.onChanged,
-    this.onCompleted,
-  });
+  const CodeInputField({super.key, this.onChanged, this.onCompleted});
 
   @override
   Widget build(BuildContext context) {
@@ -384,82 +335,66 @@ class CodeInputField extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
         fieldHeight: 60,
         fieldWidth: 50,
-        activeColor: AppColors.brown,
-        selectedColor: AppColors.primary,
-        inactiveColor: AppColors.brown.withOpacity(0.4),
-        activeFillColor: AppColors.latteFoam,
-        inactiveFillColor: AppColors.latteFoam,
-        selectedFillColor: AppColors.latteFoam,
+        activeColor: AppColors.brown(context),
+        selectedColor: AppColors.primary(context),
+        inactiveColor: AppColors.brown(context).withOpacity(0.4),
+        activeFillColor: AppColors.latteFoam(context),
+        inactiveFillColor: AppColors.latteFoam(context),
+        selectedFillColor: AppColors.latteFoam(context),
         borderWidth: 2.5,
       ),
-      cursorColor: AppColors.brown,
+      cursorColor: AppColors.brown(context),
       animationDuration: const Duration(milliseconds: 100),
       enableActiveFill: true,
-      onChanged: onChanged ?? (value) {},
-      onCompleted: onCompleted ?? (value) {},
+      onChanged: onChanged ?? (_) {},
+      onCompleted: onCompleted ?? (_) {},
     );
   }
 }
 
-//bottom nav for after logging in
+// NavBar
 class NavIcon extends StatelessWidget {
   final IconData icon;
   final bool isActive;
 
-  const NavIcon({
-    super.key,
-    required this.icon,
-    this.isActive = false,
-  });
+  const NavIcon({super.key, required this.icon, this.isActive = false});
 
   @override
   Widget build(BuildContext context) {
+    const baseColor = AppColors.light;
+    const shadowColor = AppColors.dark;
+
     return Container(
-      padding: const EdgeInsets.only(right: 20, left: 20, top: 10, bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: isActive
-            ? AppColors.latteFoam.withOpacity(0.8)
-            : AppColors.latteFoam.withOpacity(0.4),
+        color: isActive ? baseColor.withOpacity(0.8) : baseColor.withOpacity(0.4),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.brown.withOpacity(0.3),
+            color: shadowColor.withOpacity(0.3),
             offset: const Offset(3, 9),
             blurRadius: 9,
-          )
+          ),
         ],
       ),
-      child: Icon(
-        icon,
-        color: AppColors.brown,
-        size: 38,
-      ),
+      child: Icon(icon, color: AppColors.dark, size: 38),
     );
   }
 }
+
 class NavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  const NavBar({
-    super.key,
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const NavBar({super.key, required this.currentIndex, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    List<IconData> icons = [
-      Icons.map,
-      Icons.photo,
-      Icons.book,
-      Icons.person,
-    ];
-
+    final icons = [Icons.map, Icons.photo, Icons.book, Icons.person];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.brown.withOpacity(0.8),
+        color: AppColors.dark.withOpacity(0.8),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -467,10 +402,7 @@ class NavBar extends StatelessWidget {
         children: List.generate(icons.length, (index) {
           return GestureDetector(
             onTap: () => onTap(index),
-            child: NavIcon(
-              icon: icons[index],
-              isActive: currentIndex == index,
-            ),
+            child: NavIcon(icon: icons[index], isActive: currentIndex == index),
           );
         }),
       ),
@@ -478,9 +410,10 @@ class NavBar extends StatelessWidget {
   }
 }
 
-//cards used for home page
+
+// HomeCard
 class HomeCard extends StatelessWidget {
-  final List<Widget> children; // Accept multiple widgets
+  final List<Widget> children;
 
   const HomeCard({super.key, required this.children});
 
@@ -490,35 +423,31 @@ class HomeCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 45),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.4),
+        color: AppColors.shadow(context).withOpacity(0.4),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.brown.withOpacity(0.3),
-            offset: const Offset(3, 9),
-            blurRadius: 9,
+            color: AppColors.shadow(context),
+            offset: const Offset(2, 4),
+            blurRadius: 3,
           )
         ],
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center, // centers vertically
-        crossAxisAlignment: CrossAxisAlignment.center, // centers horizontally
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: children,
       ),
     );
   }
 }
 
-//star rating
+// Star Rating
 class StarRating extends StatelessWidget {
   final int rating;
   final ValueChanged<int> onRatingChanged;
 
-  const StarRating({
-    super.key,
-    required this.rating,
-    required this.onRatingChanged,
-  });
+  const StarRating({super.key, required this.rating, required this.onRatingChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -529,7 +458,7 @@ class StarRating extends StatelessWidget {
           onTap: () => onRatingChanged(index + 1),
           child: Icon(
             index < rating ? Icons.star : Icons.star_border,
-            color: AppColors.brown,
+            color: AppColors.dark,
           ),
         );
       }),
@@ -537,148 +466,21 @@ class StarRating extends StatelessWidget {
   }
 }
 
-InputDecoration buildInputDecoration(String label, {Widget? suffixIcon}) {
+InputDecoration buildInputDecoration(BuildContext context, String label, {Widget? suffixIcon}) {
   return InputDecoration(
     labelText: label,
-    labelStyle: TextStyle(color: AppColors.brown),
+    labelStyle: TextStyle(color: AppColors.brown(context)),
     suffixIcon: suffixIcon,
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(color: AppColors.brown, width: 2),
+      borderSide: BorderSide(color: AppColors.brown(context), width: 2),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: AppColors.brown, width: 2.5),
+      borderSide: BorderSide(color: AppColors.brown(context), width: 2.5),
     ),
     filled: true,
-    fillColor: AppColors.latteFoam,
+    fillColor: AppColors.latteFoam(context),
     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
   );
 }
-
-class EmojiChoiceDialog extends StatelessWidget {
-  final void Function(String emoji) onSelect;
-
-  const EmojiChoiceDialog({super.key, required this.onSelect});
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppColors.latteFoam,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text(
-        "Mark this spot as...",
-        style: TextStyle(fontFamily: 'Playfair Display', fontWeight: FontWeight.bold, color: AppColors.brown),
-      ),
-      content: Wrap(
-        spacing: 16,
-        runSpacing: 16,
-        alignment: WrapAlignment.center,
-        children: [
-          TextButton(
-            onPressed: () => onSelect("☕️"),
-            child: const Text("☕️ Visited", style: TextStyle(fontSize: 22)),
-          ),
-          TextButton(
-            onPressed: () => onSelect("🤎"),
-            child: const Text("🤎 Want to Visit", style: TextStyle(fontSize: 22)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class SearchBar extends StatelessWidget {
-  final TextEditingController controller;
-  final void Function(String) onSearch;
-
-  const SearchBar({super.key, required this.controller, required this.onSearch});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-      decoration: BoxDecoration(color: AppColors.brown, borderRadius: BorderRadius.circular(16)),
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: AppColors.latteFoam),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              style: const TextStyle(color: AppColors.latteFoam, fontSize: 16),
-              decoration: InputDecoration(
-                hintText: "Search places...",
-                hintStyle: TextStyle(color: AppColors.latteFoam.withOpacity(0.7)),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-              ),
-              onSubmitted: onSearch,
-              textInputAction: TextInputAction.search,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class MarkerListDialog extends StatelessWidget {
-  final String title;
-  final List<Marker> markers;
-  final Map<MarkerId, String> emojis;
-  final void Function(LatLng) onTap;
-
-  const MarkerListDialog({
-    super.key,
-    required this.title,
-    required this.markers,
-    required this.emojis,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppColors.latteFoam,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.brown)),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: markers.isEmpty
-            ? const Text("No markers yet.", style: TextStyle(color: AppColors.brown))
-            : ListView.builder(
-          shrinkWrap: true,
-          itemCount: markers.length,
-          itemBuilder: (context, index) {
-            final marker = markers[index];
-            return ListTile(
-              leading: Text(emojis[marker.markerId] ?? "", style: const TextStyle(fontSize: 20)),
-              title: Text(
-                marker.infoWindow.title?.replaceAll(RegExp(r'^[^a-zA-Z0-9]*'), '') ?? 'Untitled',
-                style: const TextStyle(color: AppColors.brown),
-              ),
-              subtitle: Text(
-                'Lat: ${marker.position.latitude.toStringAsFixed(4)}, '
-                    'Lng: ${marker.position.longitude.toStringAsFixed(4)}',
-                style: const TextStyle(color: AppColors.brown, fontSize: 12),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                onTap(marker.position);
-              },
-            );
-          },
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Close", style: TextStyle(color: AppColors.sage)),
-        ),
-      ],
-    );
-  }
-}
-

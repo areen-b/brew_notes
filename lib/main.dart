@@ -6,9 +6,12 @@ import 'package:brew_notes/screens/maps_page.dart';
 import 'package:brew_notes/screens/profile_page.dart';
 import 'package:brew_notes/screens/new_entry_page.dart';
 import 'package:brew_notes/screens/home_page.dart';
+import 'package:brew_notes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+
+final themeModeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,20 +34,26 @@ class BrewNotes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Brew Notes',
-      debugShowCheckedModeBanner: false,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const LandingPage(),
-        '/home': (context) => const HomePage(),
-        '/map': (context) => const MapsPage(),
-        '/gallery': (context) => const GalleryPage(),
-        '/journal': (context) => const JournalPage(),
-        '/add': (context) => const EntryPage(),
-        '/profile': (context) => const ProfilePage(),
-        '/forgot': (context) => const ForgotPassword(),
-      },
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeModeNotifier,
+      builder: (_, mode, __) => MaterialApp(
+        title: 'Brew Notes',
+        debugShowCheckedModeBanner: false,
+        themeMode: mode,
+        theme: AppThemes.lightTheme,
+        darkTheme: AppThemes.darkTheme,
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const LandingPage(),
+          '/home': (context) => const HomePage(),
+          '/map': (context) => const MapsPage(),
+          '/gallery': (context) => const GalleryPage(),
+          '/journal': (context) => const JournalPage(),
+          '/add': (context) => const EntryPage(),
+          '/profile': (context) => const ProfilePage(),
+          '/forgot': (context) => const ForgotPassword(),
+        },
+      ),
     );
   }
 }

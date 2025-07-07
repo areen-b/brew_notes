@@ -13,17 +13,16 @@ class LandingPage extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: AppColors.latteFoam,
+      backgroundColor: AppColors.latteFoam(context),
       body: Stack(
         children: [
-          // Background and content
           Column(
             children: [
               ClipPath(
                 clipper: TopCurveClipper(),
                 child: Container(
                   height: screenHeight * 0.55,
-                  color: AppColors.primary,
+                  color: AppColors.shadow(context),
                   alignment: Alignment.bottomCenter,
                   child: Padding(
                     padding: EdgeInsets.only(bottom: screenHeight * 0.12),
@@ -33,7 +32,7 @@ class LandingPage extends StatelessWidget {
                         fontSize: screenWidth * 0.125,
                         fontWeight: FontWeight.w600,
                         fontFamily: 'Playfair Display',
-                        color: AppColors.latteFoam,
+                        color: AppColors.inverse(context),
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -51,13 +50,13 @@ class LandingPage extends StatelessWidget {
                   fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.w500,
                   fontFamily: 'Barlow',
-                  color: AppColors.brown,
+                  color: AppColors.brown(context),
                   height: 1.5,
                   shadows: [
                     Shadow(
-                      color: AppColors.brown,
+                      color: AppColors.brown(context),
                       blurRadius: 4,
-                      offset: Offset(0, 1),
+                      offset: const Offset(0, 1),
                     ),
                   ],
                 ),
@@ -75,27 +74,23 @@ class LandingPage extends StatelessWidget {
                     Expanded(
                       child: AppButton(
                         label: 'Log in',
-                        color: AppColors.brown,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginPage(),
-                            ),
-                          );
-                        },
+                        textColor: AppColors.light,
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginPage()),
+                        ),
                       ),
                     ),
                     SizedBox(width: screenWidth * 0.04),
                     Expanded(
-                      child: AppButton(label: 'Sign up', color: AppColors.brown, onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                            builder: (context) => const SignUpPage(),
+                      child: AppButton(
+                        label: 'Sign up',
+                        textColor: AppColors.light,
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const SignUpPage()),
                         ),
-                        );
-                      }),
+                      ),
                     ),
                   ],
                 ),
@@ -103,11 +98,10 @@ class LandingPage extends StatelessWidget {
             ],
           ),
 
-          // Floating theme toggle button
           const Positioned(
             top: 40,
             right: 16,
-            child: ThemeToggleButton(iconColor: AppColors.latteFoam),
+            child: ThemeToggleButton(),
           ),
         ],
       ),
