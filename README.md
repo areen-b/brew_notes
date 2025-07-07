@@ -47,5 +47,5 @@ The app supports light and dark themes, Firebase authentication, and media stora
 1. Clone the repo:
 
 ```bash
-git clone https://github.com/your-username/brew-notes.git
+git clone https://github.com/areen-b/brew_notes.git
 cd brew-notes
