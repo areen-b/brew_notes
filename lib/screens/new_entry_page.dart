@@ -104,7 +104,9 @@ class _EntryPageState extends State<EntryPage> {
       // Upload new image if picked
       if (_selectedImage != null) {
         final fileName = const Uuid().v4();
-        final ref = FirebaseStorage.instance.ref().child('journal_images/$fileName.jpg');
+        final ref = FirebaseStorage.instance
+            .ref()
+            .child('journal_images/$uid/$fileName.jpg');
         await ref.putFile(_selectedImage!);
         imageUrl = await ref.getDownloadURL();
       }
@@ -218,7 +220,35 @@ class _EntryPageState extends State<EntryPage> {
                       _buildTextField(_titleController, 'location name'),
                       const SizedBox(height: 16),
                       Row(children: [
-                        Expanded(child: _buildTextField(_addressController, 'address', fill: AppColors.caramel(context), hintColor: AppColors.dark)),
+                        Expanded(
+                          child: Container(
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: AppColors.caramel(context).withOpacity(0.75),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(2, 4)),
+                              ],
+                            ),
+                            child: TextField(
+                              controller: _addressController,
+                              expands: true,
+                              maxLines: null,
+                              style: TextStyle(color: AppColors.dark),
+                              decoration: InputDecoration(
+                                hintText: 'address',
+                                hintStyle: TextStyle(color: AppColors.dark, fontFamily: 'Playfair Display'),
+                                contentPadding: const EdgeInsets.all(12),
+                                border: const OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                                  borderSide: BorderSide.none,
+                                ),
+                                filled: true,
+                              ),
+                            ),
+                          ),
+                        ),
+
                         const SizedBox(width: 12),
                         Expanded(
                           child: Container(
@@ -321,7 +351,7 @@ class _EntryPageState extends State<EntryPage> {
             border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)), borderSide: BorderSide.none),
           ),
           dropdownColor: AppColors.primary(context),
-          style: TextStyle(color: AppColors.inverse(context)),
+          style: TextStyle(color: AppColors.light),
         ),
       ),
     );

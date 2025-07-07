@@ -2,10 +2,12 @@ import 'package:brew_notes/screens/forgot_password_page.dart';
 import 'package:brew_notes/screens/gallery_page.dart';
 import 'package:brew_notes/screens/journal_page.dart';
 import 'package:brew_notes/screens/landing_page.dart';
+import 'package:brew_notes/screens/login_page.dart';
 import 'package:brew_notes/screens/maps_page.dart';
 import 'package:brew_notes/screens/profile_page.dart';
 import 'package:brew_notes/screens/new_entry_page.dart';
 import 'package:brew_notes/screens/home_page.dart';
+import 'package:brew_notes/screens/signup_page.dart';
 import 'package:brew_notes/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -52,6 +54,8 @@ class BrewNotes extends StatelessWidget {
           '/add': (context) => const EntryPage(),
           '/profile': (context) => const ProfilePage(),
           '/forgot': (context) => const ForgotPassword(),
+          '/login': (context) => const LoginPage(),
+          '/signup': (context) => const SignUpPage(),
         },
       ),
     );
